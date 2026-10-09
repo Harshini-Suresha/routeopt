@@ -113,8 +113,6 @@ section.block,#demo{scroll-margin-top:60px}
 .card p{font-size:1rem;margin:0 0 10px;max-width:none}
 .card .cap{margin:12px 0 2px}
 .card .chart{max-width:700px;margin-left:auto;margin-right:auto}
-#costmat{max-width:460px}
-#costmat rect{shape-rendering:crispEdges}
 .card dl.stats{margin-top:8px}
 @media (max-width:760px){section.block{padding-top:40px}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -298,16 +296,26 @@ section.block,#demo{scroll-margin-top:60px}
             <svg id="heat" class="chart" viewBox="0 0 800 520" role="img" aria-label="Map shaded by how often each location is visited" style="background:#fff;border:1px solid var(--rule);border-radius:6px;margin-top:8px"></svg>
             <p class="cap" id="hmtop"></p>
           </div>
-          <div class="card wide">
-            <h3>Cost matrix</h3>
-            <p>Cheapest route cost between every pair of locations — darker means farther. Hover any cell for the pair.</p>
-            <svg id="costmat" class="chart mapsvg" viewBox="0 0 520 520" role="img" aria-label="Heatmap of cheapest route costs between locations"></svg>
-            <p class="cap" id="matcap"></p>
-          </div>
           <div class="card">
             <h3>How the cost grows</h3>
             <p id="theorycap"></p>
             <div id="theory"></div>
+          </div>
+          <div class="card">
+            <h3>Road weight in numbers</h3>
+            <p>Every road weight is its straight-line distance times 0.8–1.4.</p>
+            <dl class="stats">
+              <div><dt>Lightest road</dt><dd id="w-min">–</dd></div>
+              <div><dt>Average road</dt><dd id="w-avg">–</dd></div>
+              <div><dt>Heaviest road</dt><dd id="w-max">–</dd></div>
+            </dl>
+            <p class="cap" id="wcap"></p>
+          </div>
+          <div class="card">
+            <h3>Bigger maps at a glance</h3>
+            <p>Same generator, bigger grids — roads per map. Open one directly:</p>
+            <div id="sizes"></div>
+            <p class="cap"><a href="?size=6">6 × 6</a> · <a href="?size=8">8 × 8</a> · <a href="?size=10">10 × 10</a></p>
           </div>
         </div>
 
@@ -574,6 +582,14 @@ function analytics(){
   const wl=Math.min(...ws),wh=Math.max(...ws),nb=6,st=(wh-wl)/nb,wc=Array(nb).fill(0);
   ws.forEach(w=>wc[Math.min(nb-1,Math.floor((w-wl)/st))]++);
   $("wt").innerHTML=histChart(wc,wc.map((_,i)=>(wl+i*st).toFixed(1)+"–"+(wl+(i+1)*st).toFixed(1)),"road weight");
+  $("w-min").textContent=Math.min(...ws).toFixed(2);
+  $("w-avg").textContent=(ws.reduce((x,y)=>x+y,0)/ws.length).toFixed(2);
+  $("w-max").textContent=Math.max(...ws).toFixed(2);
+  $("wcap").textContent=`${ws.length} roads in total on this map.`;
+  const keepSZ=[N,P,adj,edgeKeys],szRows=[];
+  [6,8,10].forEach(k=>{if(k===MSZ){szRows.push([k+" × "+k,N,edgeKeys.length])}else{build(k,k,11);szRows.push([k+" × "+k,N,edgeKeys.length])}});
+  [N,P,adj,edgeKeys]=keepSZ;
+  $("sizes").innerHTML=barChart(szRows.map(r=>r[0]),szRows.map(r=>r[2]),v=>v+" roads",true);
   const top6=deg.map((d,i)=>[d,i]).sort((x,y)=>y[0]-x[0]||x[1]-y[1]).slice(0,6);
   $("hubs").innerHTML=barChart(top6.map(t=>NAMES[t[1]]),top6.map(t=>t[0]),v=>v,true);
   $("hubcap").textContent=`Best connected: ${NAMES[top6[0][1]]} with ${top6[0][0]} roads.`;
@@ -675,17 +691,6 @@ function newviz(){
   let run=0;const cum=hs.map(h=>run+=hc[h]),tot2=cum[cum.length-1],med=hs[cum.findIndex(v=>v>=tot2/2)];
   $("hopcum").innerHTML=linChart(hs,[{name:"pairs reached",c:COLORS.dijkstra,vals:cum}],"hops","Line chart of cumulative pairs reached within k hops");
   $("hopcumcap").textContent=`Half of all sampled pairs are within ${med} hops.`;
-  /* cost matrix: cheapest cost between locations */
-  const idx=N<=64?Array.from({length:N},(_,i)=>i):Array.from({length:50},(_,i)=>Math.round(i*(N-1)/49));
-  const C=idx.map(a=>idx.map(c=>a===c?0:ALGOS.dijkstra(a,c).cost));
-  const flat=C.flat(),mx=Math.max(...flat);
-  const S=520,cell=S/idx.length;
-  let o="";
-  idx.forEach((a,i)=>idx.forEach((b,j)=>{
-    o+=`<rect x="${(i*cell).toFixed(1)}" y="${(j*cell).toFixed(1)}" width="${(cell+0.5).toFixed(1)}" height="${(cell+0.5).toFixed(1)}" fill="${shade(C[i][j]/mx)}"><title>${NAMES[a]} to ${NAMES[b]}: cost ${C[i][j].toFixed(1)}</title></rect>`}));
-  $("costmat").innerHTML=o;
-  let fi=0,fj=1;flat.forEach((v,k)=>{if(v>flat[fi*idx.length+fj]){fi=Math.floor(k/idx.length);fj=k%idx.length}});
-  $("matcap").textContent=`Average cheapest cost ${(flat.reduce((x,y)=>x+y,0)/flat.length).toFixed(1)}. Farthest pair: ${NAMES[idx[fi]]} to ${NAMES[idx[fj]]} at cost ${flat[fi*idx.length+fj].toFixed(1)}.`;
   /* road weight vs routes using it */
   const use={};
   for(const [a,b] of PS){const r=ALGOS.dijkstra(a,b);
