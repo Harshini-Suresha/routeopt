@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RouteOpt: graph-based route optimization</title>
+<meta name="description" content="RouteOpt compares Dijkstra, A*, Bellman–Ford and BFS on a weighted map, with Trie-based location search. A PES University Data Structures & Algorithms project.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&family=Newsreader:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F9E6E4; --panel:#FFF5F3; --ink:#14232D; --soft:#5A4A4D; --edge:#B3C2CB;
+  --teal:#0E7C86; --amber:#E9A23B; --route:#C81E5A; --rule:#E4C9C6;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"Newsreader",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 18px/1.6 var(--body);font-variant-numeric:tabular-nums}
+a{color:var(--teal)}
+:focus-visible{outline:3px solid var(--route);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+header.top{padding:20px 0}
+.mark{font:800 22px/1 var(--display);letter-spacing:-.02em}
+h1{font:800 clamp(2.2rem,6vw,4.2rem)/1.02 var(--display);letter-spacing:-.035em;margin:28px 0 16px;max-width:15em}
+h2{font:800 clamp(1.5rem,3vw,2rem)/1.15 var(--display);letter-spacing:-.02em;margin:0}
+.lede{max-width:38em;color:var(--soft);font-size:1.15rem;margin:0 0 28px}
+
+/* demo */
+.demo{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:16px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:12px}
+.bar label{display:flex;flex-direction:column;font:500 .8rem/1.2 var(--display);color:var(--soft);gap:4px}
+select,input,button{font:500 .95rem var(--display);color:var(--ink);padding:9px 12px;border:1px solid var(--edge);border-radius:6px;background:#fff}
+button{cursor:pointer}
+button.go{background:var(--ink);border-color:var(--ink);color:#fff}
+button:disabled{opacity:.45;cursor:not-allowed}
+.search{position:relative}
+.search ul{position:absolute;z-index:5;left:0;right:0;top:100%;margin:2px 0 0;padding:4px;list-style:none;background:#fff;border:1px solid var(--edge);border-radius:6px}
+.search ul:empty{display:none}
+.search li button{width:100%;text-align:left;border:0;padding:7px 8px}
+.search li button:hover{background:var(--paper)}
+svg#map{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--rule);border-radius:6px}
+.e{stroke:var(--edge);stroke-width:2}
+.e.p{stroke:var(--route);stroke-width:5;stroke-linecap:round}
+.n{fill:#fff;stroke:var(--ink);stroke-width:2;cursor:pointer}
+.n.v{fill:var(--amber)}
+.n.p{fill:var(--route);stroke:var(--route)}
+.n.s{fill:var(--teal);stroke:var(--teal)}
+.n.t{fill:var(--ink)}
+.lbl{font:500 15px var(--display);fill:var(--ink);paint-order:stroke;stroke:#fff;stroke-width:5px}
+.status{margin:10px 0 0;font:500 .95rem var(--display);color:var(--soft)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:10px 0 0;padding:0;list-style:none;font:500 .85rem var(--display);color:var(--soft)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:2px solid var(--ink);background:#fff}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px 24px;margin:16px 0 0}
+.stats div{border-top:3px solid var(--ink);padding-top:6px}
+.stats dt{font:500 .8rem var(--display);color:var(--soft)}
+.stats dd{margin:0;font:800 1.7rem/1.2 var(--display)}
+table{width:100%;border-collapse:collapse;font-size:1rem}
+th,td{text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:500 .85rem var(--display);color:var(--soft)}
+td:first-child{font-family:var(--display);font-weight:500;white-space:nowrap}
+.scroll{overflow-x:auto}
+#cmp{margin-top:16px}
+#cmp:empty{display:none}
+
+h3{font:800 1.1rem var(--display);margin:32px 0 4px}
+h3:first-child{margin-top:0}
+.cap{margin:14px 0 2px;font:500 .85rem var(--display);color:var(--soft)}
+.chart{width:100%;height:auto;display:block;max-width:640px}
+.chart text{font:500 12px var(--display);fill:var(--soft)}
+.chart .val{fill:var(--ink);font-weight:800}
+.chart .ax{stroke:var(--rule)}
+#bstat{margin-left:10px}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 28px}
+.links{list-style:none;margin:0;padding:0}
+.links li{padding:14px 0;border-top:1px solid var(--rule)}
+.links a{font:800 1.15rem var(--display)}
+.links span{display:block;color:var(--soft)}
+section.block{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr);gap:24px 56px;padding:64px 0 0}
+section.block p{margin:0 0 1em;max-width:36em}
+dl.what dt{font:800 1.1rem var(--display);margin-top:18px}
+dl.what dt:first-child{margin-top:0}
+dl.what dd{margin:4px 0 0;max-width:36em}
+main{padding-bottom:72px}
+.mapsvg{background:#fff;border:1px solid var(--rule);border-radius:6px;margin-top:8px}
+.links:empty{display:none}
+.contact{margin:0;padding:14px 0;border-top:1px solid var(--rule)}
+.contact a{font:800 1.15rem var(--display)}
+@media (max-width:760px){section.block{grid-template-columns:1fr;padding-top:48px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top"><span class="mark">RouteOpt</span></header>
+
+  <main>
+    <h1>Find the shortest route, and see what it cost to find it.</h1>
+    <p class="lede">RouteOpt is a graph-based navigation system that runs Dijkstra, A*, Bellman–Ford and BFS on the same weighted map. Pick two places and watch each algorithm search.</p>
+
+    <div class="demo" id="demo">
+      <div class="bar">
+        <label>Algorithm
+          <select id="algo">
+            <option value="dijkstra">Dijkstra</option>
+            <option value="astar">A* search</option>
+            <option value="bf">Bellman–Ford</option>
+            <option value="bfs">BFS (fewest hops)</option>
+          </select>
+        </label>
+        <label class="search">Search a location
+          <input id="q" type="text" autocomplete="off" placeholder="Type a name, e.g. Ca" aria-controls="hits">
+          <ul id="hits"></ul>
+        </label>
+        <button class="go" id="run">Run search</button>
+        <button id="cmpbtn">Compare all four</button>
+        <button id="reset">Clear</button>
+      </div>
+
+      <svg id="map" viewBox="0 0 800 520" role="group" aria-label="Weighted map. Select two locations to find a route."></svg>
+      <p class="status" id="status" aria-live="polite"></p>
+      <ul class="legend">
+        <li><i style="background:var(--teal);border-color:var(--teal)"></i>Start</li>
+        <li><i style="background:var(--ink)"></i>Destination</li>
+        <li><i style="background:var(--amber)"></i>Visited by the search</li>
+        <li><i style="background:var(--route);border-color:var(--route)"></i>Route found</li>
+      </ul>
+
+      <dl class="stats" aria-live="polite">
+        <div><dt>Nodes visited</dt><dd id="s-v">–</dd></div>
+        <div><dt>Edges checked</dt><dd id="s-e">–</dd></div>
+        <div><dt>Route cost</dt><dd id="s-c">–</dd></div>
+        <div><dt>Stops on route</dt><dd id="s-h">–</dd></div>
+      </dl>
+      <div class="scroll" id="cmp"></div>
+    </div>
+
+    <section class="block" id="about">
+      <h2>What RouteOpt does</h2>
+      <dl class="what">
+        <dt>Route computation</dt>
+        <dd>Locations are vertices and routes are weighted edges. The system computes shortest paths and discovers routes across large map data.</dd>
+        <dt>Graph traversal</dt>
+        <dd>BFS and DFS handle connectivity checks, cycle detection and reachability queries. Topological sorting orders dependency-aware directed graphs.</dd>
+        <dt>Location search</dt>
+        <dd>A Trie powers prefix autocomplete, and a hash table gives constant-time lookup of a location and its metadata. Both are running in the search box above.</dd>
+        <dt>Benchmarking</dt>
+        <dd>A benchmarking framework compares traversal and shortest-path strategies as graphs grow, measuring runtime, memory use and scalability.</dd>
+      </dl>
+    </section>
+
+    <section class="block" id="algorithms">
+      <h2>Algorithms and data structures</h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>Technique</th><th>Time</th><th>Used for</th></tr></thead>
+          <tbody>
+            <tr><td>Dijkstra</td><td>O((V + E) log V)</td><td>Shortest paths on non-negative weights, using a binary-heap priority queue</td></tr>
+            <tr><td>A* search</td><td>Depends on the heuristic</td><td>Goal-directed shortest paths that explore fewer nodes</td></tr>
+            <tr><td>Bellman–Ford</td><td>O(V · E)</td><td>Shortest paths that also tolerate negative weights</td></tr>
+            <tr><td>BFS / DFS</td><td>O(V + E)</td><td>Traversal, connectivity, cycle detection, reachability</td></tr>
+            <tr><td>Topological sort</td><td>O(V + E)</td><td>Ordering dependency-aware directed graphs</td></tr>
+            <tr><td>Trie</td><td>O(k) per prefix of length k</td><td>Autocomplete for location names</td></tr>
+            <tr><td>Hash table</td><td>O(1) average</td><td>Location lookup and metadata retrieval</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block" id="benchmarks">
+      <h2>Data and benchmarks</h2>
+      <div>
+        <h3>Average search effort on the demo map</h3>
+        <p>Mean over every pair of the 36 locations (<span id="pairs">630</span> pairs), computed in your browser when the page loads.</p>
+        <div id="avg"></div>
+        <h3>Route quality</h3>
+        <p>How much more the average route costs than the cheapest one, over every pair. BFS minimises hops, not cost.</p>
+        <div id="gap"></div>
+        <h3>The map in numbers</h3>
+        <dl class="stats">
+          <div><dt>Locations</dt><dd id="g-n">–</dd></div>
+          <div><dt>Roads</dt><dd id="g-e">–</dd></div>
+          <div><dt>Roads per location</dt><dd id="g-d">–</dd></div>
+          <div><dt>Most hops between two places</dt><dd id="g-h">–</dd></div>
+        </dl>
+        <div class="pair"><div><p class="cap">Roads per location</p><div id="deg"></div></div><div><p class="cap">Road weight</p><div id="wt"></div></div></div>
+        <h3>Which locations get searched most</h3>
+        <p>Every pair of locations is searched, and each location visited along the way is counted.</p>
+        <label class="cap">Algorithm <select id="hmalgo"><option value="dijkstra">Dijkstra</option><option value="astar">A* search</option><option value="bf">Bellman–Ford</option><option value="bfs">BFS (fewest hops)</option></select></label>
+        <svg id="heat" class="chart" viewBox="0 0 800 520" role="img" aria-label="Map shaded by how often each location is visited" style="background:#fff;border:1px solid var(--rule);border-radius:6px;margin-top:8px"></svg>
+        <p class="cap" id="hmtop"></p>
+        <h3>How the cost grows</h3>
+        <p id="theorycap"></p>
+        <div id="theory"></div>
+        <h3>Effort by distance</h3>
+        <p>Average nodes visited, grouped by how many hops apart the start and destination are.</p>
+        <div id="hops"></div>
+        <h3>A* versus Dijkstra</h3>
+        <p id="savcap"></p>
+        <div id="sav"></div>
+        <h3>Priority queue activity</h3>
+        <p>Dijkstra and A* both use a binary heap. Pushes count how many entries were added, and the peak is the largest the heap ever got.</p>
+        <p class="cap">Average heap pushes per search</p><div id="hpush"></div>
+        <p class="cap">Average peak heap size</p><div id="hpeak"></div>
+        <h3>Time per search</h3>
+        <p>Average time per search over every pair, measured in your browser. Timings vary between devices.</p>
+        <div id="tm"></div>
+        <h3>How far is everything from one place</h3>
+        <p>Cheapest route cost from the chosen location to every other location. Darker means farther.</p>
+        <label class="cap">Start <select id="isosrc"></select></label>
+        <svg id="iso" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map shaded by cheapest route cost from the chosen start"></svg>
+        <p class="cap" id="isocap"></p>
+        <h3>Which roads carry the most routes</h3>
+        <p>The cheapest route for every pair is traced, and each road on it is counted. Thicker means more routes.</p>
+        <svg id="usage" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map with road thickness showing how many cheapest routes use each road"></svg>
+        <p class="cap" id="usagecap"></p>
+        <h3>Route costs</h3>
+        <p class="cap">Cheapest route cost over all pairs</p><div id="costh"></div>
+        <p class="cap">Route cost divided by straight-line distance. 1.0 would be a straight road.</p><div id="detour"></div>
+        <h3>Which locations sit in the middle</h3>
+        <p>A location is counted each time it lies between the start and end of a cheapest route. Darker means more routes pass through it.</p>
+        <svg id="between" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map shaded by how many cheapest routes pass through each location"></svg>
+        <p class="cap">Locations most often passed through</p><div id="betbar"></div>
+        <h3>Bellman–Ford passes</h3>
+        <p>Bellman–Ford repeats a pass over every road until nothing improves. Number of searches by passes needed:</p>
+        <div id="passes"></div>
+        <h3>What if road weights vary more?</h3>
+        <p>The map is rebuilt with wider ranges of road weight, shown as a multiple of straight-line distance. The chart shows how much extra BFS routes cost and how many fewer nodes A* visits than Dijkstra.</p>
+        <div id="sens"></div>
+        <h3>How the algorithms scale</h3>
+        <p>Builds grid graphs from 100 to 6,400 nodes and times each algorithm corner to corner. Timings depend on your device.</p>
+        <button class="go" id="bench">Run scaling benchmark</button><span class="status" id="bstat" aria-live="polite"></span>
+        <div id="charts"></div>
+      </div>
+    </section>
+
+    <section class="block" id="links">
+      <h2>Links and contact</h2>
+      <div>
+        <ul class="links" id="linklist"></ul>
+        <p class="contact">Contact: <a href="mailto:harshinisuresha7@gmail.com">harshinisuresha7@gmail.com</a></p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* Fill these in and redeploy. Empty entries are hidden.
+   repo: "your-username/your-repo" (the repo holding index.html at root).
+   Example: repo:"harshini/routeopt", streamlit:"https://your-app.streamlit.app", report:"https://..." */
+const LINKS={repo:"Harshini-Suresha/routeopt",streamlit:"",report:""};
+(function(){
+const W=800,H=520;
+const NAMES=["Harbour Gate","Mill Lane","Old Market","Canal Street","Station Square","Library","Clock Tower","Botanic Garden","Riverside","Fort Road","Orchard Hill","Chapel Yard","Bridge End","Foundry","Granary","Hospital","Ironworks","Junction","Kiln Row","Lantern Court","Museum","North Gate","Observatory","Parkside","Quarry Bend","Rose Court","South Quay","Tannery","University","Viaduct","Wharf","Yew Tree","Zenith Plaza","Abbey","Brook End","Cathedral"];
+
+/* seeded random so the map is the same on every visit */
+function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let N,P,adj,edgeKeys;
+function build(cols,rows,seed,spread=0.6){
+  const R=rng(seed);N=cols*rows;P=[];adj=Array.from({length:N},()=>[]);edgeKeys=[];
+  const sx=(W-140)/(cols-1),sy=(H-110)/(rows-1);
+  for(let i=0;i<N;i++){const r=Math.floor(i/cols),c=i%cols;
+    P.push({x:70+c*sx+(R()-.5)*.38*sx,y:55+r*sy+(R()-.5)*.49*sy})}
+  function link(a,b){const d=Math.hypot(P[a].x-P[b].x,P[a].y-P[b].y),w=d*(0.8+R()*spread);
+    adj[a].push({to:b,w});adj[b].push({to:a,w});edgeKeys.push([a,b])}
+  for(let i=0;i<N;i++){const r=Math.floor(i/cols),c=i%cols;
+    if(c<cols-1&&(r===0||R()>.25))link(i,i+1);
+    if(r<rows-1)link(i,i+cols);
+    if(r<rows-1&&c<cols-1&&R()<.3)link(i,i+cols+1);
+    if(r<rows-1&&c>0&&R()<.2)link(i,i+cols-1)}}
+build(6,6,11);
+
+/* binary min-heap */
+class Heap{constructor(){this.a=[]}
+  get size(){return this.a.length}
+  push(k,v){const a=this.a;a.push([k,v]);this.pushes=(this.pushes||0)+1;this.peak=Math.max(this.peak||0,a.length);let i=a.length-1;
+    while(i>0){const p=(i-1)>>1;if(a[p][0]<=a[i][0])break;[a[p],a[i]]=[a[i],a[p]];i=p}}
+  pop(){const a=this.a,top=a[0],last=a.pop();
+    if(a.length){a[0]=last;let i=0;for(;;){const l=2*i+1,r=l+1;let m=i;
+      if(l<a.length&&a[l][0]<a[m][0])m=l;if(r<a.length&&a[r][0]<a[m][0])m=r;
+      if(m===i)break;[a[m],a[i]]=[a[i],a[m]];i=m}}
+    return top}}
+
+/* trie for autocomplete + hash map for lookup */
+class Trie{constructor(){this.root={k:{},ids:[]}}
+  add(word,id){let n=this.root;for(const ch of word.toLowerCase()){n=n.k[ch]||(n.k[ch]={k:{},ids:[]})}n.ids.push(id)}
+  find(prefix){let n=this.root;for(const ch of prefix.toLowerCase()){n=n.k[ch];if(!n)return[]}
+    const out=[];(function walk(x){out.push(...x.ids);for(const c in x.k)walk(x.k[c])})(n);return out}}
+const trie=new Trie(),byName=new Map();
+NAMES.forEach((n,i)=>{trie.add(n,i);byName.set(n,i)});
+
+/* algorithms */
+function finish(trace,edges,prev,s,t){
+  const path=[];for(let v=t;v!==-1;v=prev[v]){path.push(v);if(v===s)break}
+  path.reverse();const ok=path[0]===s;let cost=0;
+  if(ok)for(let i=1;i<path.length;i++)cost+=adj[path[i-1]].find(e=>e.to===path[i]).w;
+  return{trace,edges,path:ok?path:[],cost,visited:trace.length}}
+function best(s,t,useH){
+  const dist=Array(N).fill(Infinity),prev=Array(N).fill(-1),done=new Set(),trace=[],q=new Heap();let edges=0;
+  const h=n=>useH?0.8*Math.hypot(P[n].x-P[t].x,P[n].y-P[t].y):0;
+  dist[s]=0;q.push(h(s),s);
+  while(q.size){const u=q.pop()[1];if(done.has(u))continue;done.add(u);trace.push(u);if(u===t)break;
+    for(const{to,w}of adj[u]){edges++;const nd=dist[u]+w;if(nd<dist[to]){dist[to]=nd;prev[to]=u;q.push(nd+h(to),to)}}}
+  return Object.assign(finish(trace,edges,prev,s,t),{pushes:q.pushes,peak:q.peak})}
+function bfs(s,t){
+  const prev=Array(N).fill(-1),seen=new Set([s]),q=[s],trace=[];let edges=0;
+  while(q.length){const u=q.shift();trace.push(u);if(u===t)break;
+    for(const{to}of adj[u]){edges++;if(!seen.has(to)){seen.add(to);prev[to]=u;q.push(to)}}}
+  return finish(trace,edges,prev,s,t)}
+function bellman(s,t){
+  const dist=Array(N).fill(Infinity),prev=Array(N).fill(-1),seen=new Set([s]),trace=[s];let edges=0;dist[s]=0;
+  let passes=0;for(let i=0;i<N-1;i++){passes++;let changed=false;
+    for(let u=0;u<N;u++){if(dist[u]===Infinity)continue;
+      for(const{to,w}of adj[u]){edges++;if(dist[u]+w<dist[to]){dist[to]=dist[u]+w;prev[to]=u;changed=true;
+        if(!seen.has(to)){seen.add(to);trace.push(to)}}}}
+    if(!changed)break}
+  return Object.assign(finish(trace,edges,prev,s,t),{passes})}
+const ALGOS={dijkstra:(s,t)=>best(s,t,false),astar:(s,t)=>best(s,t,true),bf:bellman,bfs:bfs};
+const LABEL={dijkstra:"Dijkstra",astar:"A* search",bf:"Bellman–Ford",bfs:"BFS (fewest hops)"};
+
+/* rendering */
+const $=id=>document.getElementById(id),svg=$("map"),reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let S=0,T=N-1,timer;
+svg.innerHTML=
+  edgeKeys.map(([a,b])=>`<line class="e" id="e${Math.min(a,b)}-${Math.max(a,b)}" x1="${P[a].x}" y1="${P[a].y}" x2="${P[b].x}" y2="${P[b].y}"/>`).join("")+
+  P.map((p,i)=>`<circle class="n" id="n${i}" cx="${p.x}" cy="${p.y}" r="10" tabindex="0" role="button" aria-label="${NAMES[i]}"><title>${NAMES[i]}</title></circle>`).join("")+
+  `<g id="labels"></g>`;
+const node=i=>$("n"+i);
+svg.addEventListener("click",e=>{const m=/^n(\d+)$/.exec(e.target.id||"");if(m)pick(+m[1])});
+svg.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const m=/^n(\d+)$/.exec(e.target.id||"");if(m){e.preventDefault();pick(+m[1])}});
+
+function clearSearch(){clearTimeout(timer);
+  svg.querySelectorAll(".v,.p").forEach(el=>el.classList.remove("v","p"));
+  ["s-v","s-e","s-c","s-h"].forEach(id=>$(id).textContent="–")}
+function paintEnds(){
+  svg.querySelectorAll(".s,.t").forEach(el=>el.classList.remove("s","t"));
+  const g=$("labels");g.innerHTML="";
+  [[S,"s"],[T,"t"]].forEach(([i,c])=>{if(i==null)return;node(i).classList.add(c);
+    const x=P[i].x,y=P[i].y;
+    g.insertAdjacentHTML("beforeend",`<text class="lbl" x="${x}" y="${y-18}" text-anchor="middle">${NAMES[i]}</text>`)});
+  $("run").disabled=$("cmpbtn").disabled=(S==null||T==null);
+  $("status").textContent=S==null?"Choose a start point on the map.":T==null?"Now choose a destination.":`${NAMES[S]} to ${NAMES[T]}`}
+function pick(i){
+  if(S==null||(S!=null&&T!=null)){S=i;T=null;clearSearch();$("cmp").innerHTML="";paintEnds();return}
+  if(i===S)return;T=i;paintEnds();run()}
+
+function run(){
+  if(S==null||T==null)return;
+  clearSearch();$("cmp").innerHTML="";
+  const res=ALGOS[$("algo").value](S,T);let i=0;
+  function done(){
+    res.trace.forEach(n=>node(n).classList.add("v"));
+    for(let k=0;k<res.path.length;k++){node(res.path[k]).classList.add("p");
+      if(k){const a=res.path[k-1],b=res.path[k];$("e"+Math.min(a,b)+"-"+Math.max(a,b)).classList.add("p")}}
+    paintEnds();
+    $("s-v").textContent=res.visited;$("s-e").textContent=res.edges;
+    $("s-c").textContent=res.path.length?Math.round(res.cost):"No route";$("s-h").textContent=res.path.length?res.path.length:"–"}
+  if(reduce){done();return}
+  (function step(){
+    if(i<res.trace.length){node(res.trace[i++]).classList.add("v");timer=setTimeout(step,70)}
+    else done()})()}
+
+function compare(){
+  if(S==null||T==null)return;
+  const keys=Object.keys(ALGOS),rs=keys.map(k=>ALGOS[k](S,T));
+  const rows=keys.map((k,i)=>`<tr><td>${LABEL[k]}</td><td>${rs[i].visited}</td><td>${rs[i].edges}</td><td>${rs[i].path.length?Math.round(rs[i].cost):"No route"}</td></tr>`).join("");
+  $("cmp").innerHTML=`<table><caption class="status" style="text-align:left;caption-side:top;margin-bottom:6px">All four algorithms, same start and destination</caption><thead><tr><th>Algorithm</th><th>Nodes visited</th><th>Edges checked</th><th>Route cost</th></tr></thead><tbody>${rows}</tbody></table><p class="cap">Nodes visited</p>`+barChart(keys.map(k=>LABEL[k]),rs.map(r=>r.visited),v=>v)}
+
+/* charts (plain SVG) */
+const COLORS={dijkstra:"#0E7C86",astar:"#C81E5A",bf:"#B97A12",bfs:"#14232D"};
+function barChart(labels,vals,fmt,plain){
+  const w=600,rh=34,l=130,max=Math.max(...vals,1e-9),h=labels.length*rh+8;
+  return`<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Bar chart: ${labels.map((n,i)=>n+" "+fmt(vals[i])).join(", ")}">`+labels.map((n,i)=>{
+    const bw=Math.max((w-l-70)*vals[i]/max,1),y=i*rh+4;
+    return`<text x="0" y="${y+20}">${n}</text><rect x="${l}" y="${y+4}" width="${bw}" height="22" rx="3" fill="${plain?"#0E7C86":(COLORS[Object.keys(ALGOS)[i]]||"#0E7C86")}"/><text class="val" x="${l+bw+8}" y="${y+20}">${fmt(vals[i])}</text>`}).join("")+"</svg>"}
+function lineChart(xs,series,xlabel,desc){
+  const w=640,h=300,L=56,Rm=140,Tm=12,B=44,all=series.flatMap(s=>s.vals).filter(v=>v>0);
+  const a=Math.floor(Math.log10(Math.min(...all)));let b=Math.ceil(Math.log10(Math.max(...all)));if(b===a)b++;
+  const X=i=>L+(w-L-Rm)*i/(xs.length-1),Y=v=>Tm+(h-Tm-B)*(1-(Math.log10(Math.max(v,Math.pow(10,a)))-a)/(b-a));
+  let o=`<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="${desc}">`;
+  for(let p=a;p<=b;p++){const y=Y(Math.pow(10,p));o+=`<line class="ax" x1="${L}" x2="${w-Rm}" y1="${y}" y2="${y}"/><text x="${L-6}" y="${y+4}" text-anchor="end">${Math.pow(10,p)}</text>`}
+  xs.forEach((x,i)=>o+=`<text x="${X(i)}" y="${h-24}" text-anchor="middle">${x}</text>`);
+  o+=`<text x="${(L+w-Rm)/2}" y="${h-6}" text-anchor="middle">${xlabel}</text>`;
+  series.forEach(se=>{
+    o+=`<polyline fill="none" stroke="${se.c}" stroke-width="2.5" points="${se.vals.map((v,i)=>X(i)+","+Y(v)).join(" ")}"/>`;
+    se.vals.forEach((v,i)=>o+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3.5" fill="${se.c}"/>`);
+    o+=`<text x="${X(xs.length-1)+8}" y="${Y(se.vals[xs.length-1])+4}" style="fill:${se.c};font-weight:800">${se.name}</text>`});
+  return o+"</svg>"}
+
+function avgEffort(){
+  const keys=Object.keys(ALGOS),sv=keys.map(()=>0),se=keys.map(()=>0);let pairs=0;
+  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){pairs++;keys.forEach((k,i)=>{const r=ALGOS[k](a,b);sv[i]+=r.visited;se[i]+=r.edges})}
+  $("pairs").textContent=pairs;const names=keys.map(k=>LABEL[k]),f=v=>v.toFixed(1);
+  $("avg").innerHTML=`<p class="cap">Average nodes visited</p>`+barChart(names,sv.map(v=>v/pairs),f)+`<p class="cap">Average edges checked</p>`+barChart(names,se.map(v=>v/pairs),f)}
+
+function histChart(counts,labels,xl){
+  const w=600,h=240,L=10,B=44,T=22,mx=Math.max(...counts),bw=(w-L)/counts.length;
+  let o=`<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Histogram of ${xl}">`;
+  counts.forEach((c,i)=>{const bh=(h-B-T)*c/mx,x=L+i*bw+4,cx=x+(bw-8)/2;
+    o+=`<rect x="${x}" y="${h-B-bh}" width="${bw-8}" height="${bh}" rx="3" fill="#0E7C86"/><text class="val" x="${cx}" y="${h-B-bh-5}" text-anchor="middle">${c}</text><text x="${cx}" y="${h-B+16}" text-anchor="middle">${labels[i]}</text>`});
+  return o+`<text x="${w/2}" y="${h-6}" text-anchor="middle">${xl}</text></svg>`}
+function analytics(){
+  const keys=Object.keys(ALGOS),names=keys.map(k=>LABEL[k]),E=edgeKeys.length;
+  /* route quality */
+  const tot=keys.map(()=>0);let pairs=0;
+  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){pairs++;const base=ALGOS.dijkstra(a,b).cost;keys.forEach((k,i)=>tot[i]+=ALGOS[k](a,b).cost/base)}
+  $("gap").innerHTML=barChart(names,tot.map(v=>100*(v/pairs-1)),v=>v.toFixed(1)+"% over best");
+  /* map in numbers */
+  let dia=0;for(let s=0;s<N;s++){const d=Array(N).fill(-1);d[s]=0;const q=[s];for(let i=0;i<q.length;i++)for(const{to}of adj[q[i]])if(d[to]<0){d[to]=d[q[i]]+1;q.push(to)}dia=Math.max(dia,...d)}
+  $("g-n").textContent=N;$("g-e").textContent=E;$("g-d").textContent=(2*E/N).toFixed(1);$("g-h").textContent=dia;
+  const deg=adj.map(a=>a.length),dc=Array(Math.max(...deg)+1).fill(0);deg.forEach(d=>dc[d]++);
+  const lo=Math.min(...deg);$("deg").innerHTML=histChart(dc.slice(lo),dc.slice(lo).map((_,i)=>i+lo),"roads at a location");
+  const ws=[];adj.forEach((a,u)=>a.forEach(e=>{if(u<e.to)ws.push(e.w)}));
+  const wl=Math.min(...ws),wh=Math.max(...ws),nb=6,st=(wh-wl)/nb,wc=Array(nb).fill(0);
+  ws.forEach(w=>wc[Math.min(nb-1,Math.floor((w-wl)/st))]++);
+  $("wt").innerHTML=histChart(wc,wc.map((_,i)=>Math.round(wl+i*st)+"–"+Math.round(wl+(i+1)*st)),"road weight");
+  /* growth curves */
+  const r=E/N,xs=[100,400,1600,3600,6400],f=fn=>xs.map(v=>fn(v,r*v));
+  $("theorycap").textContent=`Operation counts for a map with ${r.toFixed(1)} roads per location like this one. Both axes are logarithmic, so a steeper line grows faster.`;
+  $("theory").innerHTML=lineChart(xs,[{name:"O(V+E)",c:COLORS.bfs,vals:f((v,e)=>v+e)},{name:"O((V+E) log V)",c:COLORS.dijkstra,vals:f((v,e)=>(v+e)*Math.log2(v))},{name:"O(V·E)",c:COLORS.bf,vals:f((v,e)=>v*e)}],"nodes in graph","Line chart of theoretical operation counts for BFS, Dijkstra and Bellman–Ford");
+  heat()}
+function heat(){
+  const k=$("hmalgo").value,cnt=Array(N).fill(0);let pairs=0;
+  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){pairs++;ALGOS[k](a,b).trace.forEach(n=>cnt[n]++)}
+  const mx=Math.max(...cnt),mn=Math.min(...cnt),c0=[236,246,246],c1=[14,124,134];
+  const col=v=>{const t=(v-mn)/((mx-mn)||1);return`rgb(${c0.map((x,i)=>Math.round(x+(c1[i]-x)*t)).join(",")})`};
+  const top=cnt.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,3);
+  $("heat").innerHTML=edgeKeys.map(([a,b])=>`<line class="e" x1="${P[a].x}" y1="${P[a].y}" x2="${P[b].x}" y2="${P[b].y}"/>`).join("")+
+    P.map((p,i)=>`<circle cx="${p.x}" cy="${p.y}" r="13" fill="${col(cnt[i])}" stroke="#14232D" stroke-width="2"><title>${NAMES[i]}: visited in ${cnt[i]} searches</title></circle>`).join("")+
+    top.map(([v,i])=>`<text class="lbl" x="${P[i].x}" y="${P[i].y-20}" text-anchor="middle">${NAMES[i]}</text>`).join("");
+  $("hmtop").textContent=`Darker means visited in more of the ${pairs} searches. Busiest: ${top.map(([v,i])=>NAMES[i]+" ("+v+")").join(", ")}.`}
+function linChart(xs,series,xl,desc){
+  const w=640,h=300,L=48,Rm=140,Tm=12,B=44,top=Math.ceil(Math.max(...series.flatMap(s=>s.vals))/4)*4||4;
+  const X=i=>L+(w-L-Rm)*(xs.length>1?i/(xs.length-1):.5),Y=v=>Tm+(h-Tm-B)*(1-v/top);
+  let o=`<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="${desc}">`;
+  for(let k=0;k<=4;k++){const v=top*k/4,y=Y(v);o+=`<line class="ax" x1="${L}" x2="${w-Rm}" y1="${y}" y2="${y}"/><text x="${L-6}" y="${y+4}" text-anchor="end">${v}</text>`}
+  xs.forEach((x,i)=>o+=`<text x="${X(i)}" y="${h-24}" text-anchor="middle">${x}</text>`);
+  o+=`<text x="${(L+w-Rm)/2}" y="${h-6}" text-anchor="middle">${xl}</text>`;
+  series.forEach(se=>{o+=`<polyline fill="none" stroke="${se.c}" stroke-width="2.5" points="${se.vals.map((v,i)=>X(i)+","+Y(v)).join(" ")}"/>`;
+    se.vals.forEach((v,i)=>o+=`<circle cx="${X(i)}" cy="${Y(v)}" r="3.5" fill="${se.c}"/>`);
+    o+=`<text x="${X(xs.length-1)+8}" y="${Y(se.vals[xs.length-1])+4}" style="fill:${se.c};font-weight:800">${se.name}</text>`});
+  return o+"</svg>"}
+function more(){
+  const keys=Object.keys(ALGOS),names=keys.map(k=>LABEL[k]),acc={},sv=[0,0,0,0,0],hp=[0,0],pk=[0,0],tm=[];let np=0,tot=0;
+  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){np++;const r=keys.map(k=>ALGOS[k](a,b)),h=r[3].path.length-1;
+    const c=acc[h]||(acc[h]={n:0,v:keys.map(()=>0)});c.n++;r.forEach((x,i)=>c.v[i]+=x.visited);
+    const sp=100*(1-r[1].visited/r[0].visited);tot+=sp;sv[sp<=0?0:sp<=20?1:sp<=40?2:sp<=60?3:4]++;
+    hp[0]+=r[0].pushes;hp[1]+=r[1].pushes;pk[0]+=r[0].peak;pk[1]+=r[1].peak}
+  const hs=Object.keys(acc).map(Number).filter(h=>acc[h].n>=3).sort((a,b)=>a-b);
+  $("hops").innerHTML=linChart(hs,keys.map((k,i)=>({name:LABEL[k].replace(" (fewest hops)",""),c:COLORS[k],vals:hs.map(h=>acc[h].v[i]/acc[h].n)})),"hops between start and destination","Line chart of average nodes visited against hop distance");
+  $("savcap").textContent=`On average A* visits ${(tot/np).toFixed(0)}% fewer nodes than Dijkstra. Number of searches by how many fewer nodes A* visited:`;
+  $("sav").innerHTML=histChart(sv,["none","1–20%","21–40%","41–60%","over 60%"],"fewer nodes visited than Dijkstra");
+  $("hpush").innerHTML=barChart(["Dijkstra","A* search"],hp.map(v=>v/np),v=>v.toFixed(1));
+  $("hpeak").innerHTML=barChart(["Dijkstra","A* search"],pk.map(v=>v/np),v=>v.toFixed(1));
+  keys.forEach((k,i)=>{const t0=performance.now();for(let a=0;a<N;a++)for(let b=a+1;b<N;b++)ALGOS[k](a,b);tm[i]=(performance.now()-t0)*1000/np});
+  $("tm").innerHTML=barChart(names,tm,v=>v.toFixed(1)+" µs")}
+function shade(t){const c0=[236,246,246],c1=[14,124,134];return`rgb(${c0.map((x,i)=>Math.round(x+(c1[i]-x)*t)).join(",")})`}
+function distFrom(s){const d=Array(N).fill(Infinity),q=new Heap(),done=new Set();d[s]=0;q.push(0,s);
+  while(q.size){const u=q.pop()[1];if(done.has(u))continue;done.add(u);
+    for(const{to,w}of adj[u])if(d[u]+w<d[to]){d[to]=d[u]+w;q.push(d[to],to)}}return d}
+function mapBase(){return edgeKeys.map(([a,b])=>`<line class="e" x1="${P[a].x}" y1="${P[a].y}" x2="${P[b].x}" y2="${P[b].y}"/>`).join("")}
+function iso(){
+  const s=+$("isosrc").value||0,d=distFrom(s),mx=Math.max(...d),far=d.indexOf(mx),others=d.filter((_,i)=>i!==s);
+  $("iso").innerHTML=mapBase()+P.map((p,i)=>`<circle cx="${p.x}" cy="${p.y}" r="13" fill="${i===s?"#0E7C86":shade(d[i]/mx)}" stroke="#14232D" stroke-width="2"><title>${NAMES[i]}: cost ${Math.round(d[i])}</title></circle>`).join("")+
+    [s,far].map(i=>`<text class="lbl" x="${P[i].x}" y="${P[i].y-20}" text-anchor="middle">${NAMES[i]}</text>`).join("");
+  $("isocap").textContent=`Farthest from ${NAMES[s]}: ${NAMES[far]} at cost ${Math.round(mx)}. Average cost to the other locations: ${Math.round(others.reduce((a,b)=>a+b,0)/others.length)}.`}
+function extra(){
+  $("isosrc").innerHTML=NAMES.map((n,i)=>`<option value="${i}">${n}</option>`).join("");$("isosrc").onchange=iso;iso();
+  const use={},costs=[],ratios=[];
+  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){const r=ALGOS.dijkstra(a,b);
+    for(let i=1;i<r.path.length;i++){const u=r.path[i-1],v=r.path[i],k=Math.min(u,v)+"-"+Math.max(u,v);use[k]=(use[k]||0)+1}
+    costs.push(r.cost);ratios.push(r.cost/Math.hypot(P[a].x-P[b].x,P[a].y-P[b].y))}
+  const mx=Math.max(...Object.values(use)),top=Object.entries(use).sort((x,y)=>y[1]-x[1])[0];
+  $("usage").innerHTML=edgeKeys.map(([a,b])=>{const c=use[Math.min(a,b)+"-"+Math.max(a,b)]||0,t=c/mx;
+    return`<line x1="${P[a].x}" y1="${P[a].y}" x2="${P[b].x}" y2="${P[b].y}" stroke="${c?shade(.35+.65*t):"#E4C9C6"}" stroke-width="${c?2+11*t:1.5}" stroke-linecap="round"><title>${NAMES[a]} to ${NAMES[b]}: ${c} routes</title></line>`}).join("")+
+    P.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="#fff" stroke="#14232D" stroke-width="1.5"/>`).join("");
+  const [ua,ub]=top[0].split("-").map(Number);
+  $("usagecap").textContent=`Busiest road: ${NAMES[ua]} to ${NAMES[ub]}, used by ${top[1]} of ${costs.length} cheapest routes. ${edgeKeys.length-Object.keys(use).length} roads are on no cheapest route.`;
+  const bin=(vals,nb,lbl)=>{const lo=Math.min(...vals),hi=Math.max(...vals),st=(hi-lo)/nb,c=Array(nb).fill(0);
+    vals.forEach(v=>c[Math.min(nb-1,Math.floor((v-lo)/st))]++);return histChart(c,c.map((_,i)=>lbl(lo+i*st)+"–"+lbl(lo+(i+1)*st)),"")};
+  $("costh").innerHTML=bin(costs,7,v=>Math.round(v));
+  $("detour").innerHTML=bin(ratios,6,v=>v.toFixed(1))}
+function binChart(vals,nb,lbl,xl){const lo=Math.min(...vals),hi=Math.max(...vals),st=(hi-lo)/nb||1,c=Array(nb).fill(0);
+  vals.forEach(v=>c[Math.min(nb-1,Math.floor((v-lo)/st))]++);return histChart(c,c.map((_,i)=>lbl(lo+i*st)+"–"+lbl(lo+(i+1)*st)),xl)}
+function extra2(){
+  const mid=Array(N).fill(0),passes=[];
+  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){const r=ALGOS.dijkstra(a,b);for(let i=1;i<r.path.length-1;i++)mid[r.path[i]]++;passes.push(ALGOS.bf(a,b).passes)}
+  const mx=Math.max(...mid),top=mid.map((v,i)=>[v,i]).sort((x,y)=>y[0]-x[0]).slice(0,6);
+  $("between").innerHTML=mapBase()+P.map((p,i)=>`<circle cx="${p.x}" cy="${p.y}" r="13" fill="${shade(mid[i]/mx)}" stroke="#14232D" stroke-width="2"><title>${NAMES[i]}: on ${mid[i]} routes</title></circle>`).join("")+
+    top.slice(0,3).map(([v,i])=>`<text class="lbl" x="${P[i].x}" y="${P[i].y-20}" text-anchor="middle">${NAMES[i]}</text>`).join("");
+  $("betbar").innerHTML=barChart(top.map(t=>NAMES[t[1]]),top.map(t=>t[0]),v=>v,true);
+  const pmin=Math.min(...passes),pmax=Math.max(...passes);
+  $("passes").innerHTML=pmax-pmin<8?histChart(Array.from({length:pmax-pmin+1},(_,i)=>passes.filter(p=>p===pmin+i).length),Array.from({length:pmax-pmin+1},(_,i)=>pmin+i),"passes until nothing improves"):binChart(passes,7,v=>Math.round(v),"passes until nothing improves");
+  const keep=[N,P,adj,edgeKeys],sp=[0,.3,.6,.9,1.2],gp=[],sv=[];
+  sp.forEach(x=>{build(6,6,11,x);let n=0,g=0,v=0;
+    for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){n++;const d=ALGOS.dijkstra(a,b);g+=ALGOS.bfs(a,b).cost/d.cost;v+=1-ALGOS.astar(a,b).visited/d.visited}
+    gp.push(100*(g/n-1));sv.push(100*v/n)});
+  [N,P,adj,edgeKeys]=keep;
+  $("sens").innerHTML=linChart(sp.map(x=>"0.8–"+(0.8+x).toFixed(1)),[{name:"BFS extra cost %",c:COLORS.bfs,vals:gp},{name:"A* fewer nodes %",c:COLORS.astar,vals:sv}],"road weight as a multiple of distance","Line chart of BFS extra cost and A* node savings against road weight spread")}
+function links(){
+  const L=[];
+  if(LINKS.repo){L.push(["Source code on GitHub","https://github.com/"+LINKS.repo,"The website, notebook and Streamlit app"]);
+    L.push(["Notebook file (.ipynb)","https://github.com/"+LINKS.repo+"/blob/main/RouteOpt.ipynb","View / download the notebook on GitHub"]);
+    L.push(["Open the notebook in Colab","https://colab.research.google.com/github/"+LINKS.repo+"/blob/main/RouteOpt.ipynb","Run every analysis yourself"])}
+  if(LINKS.streamlit)L.push(["Streamlit app",LINKS.streamlit,"Interactive explorer with a scaling benchmark"]);
+  if(LINKS.report)L.push(["Project report",LINKS.report,"Design, analysis and results"]);
+  if(!L.length)return;
+  $("linklist").innerHTML=L.map(([t,u,d])=>`<li><a href="${u}" target="_blank" rel="noopener">${t}</a><span>${d}</span></li>`).join("");
+  }
+function bench(){
+  const keep=[N,P,adj,edgeKeys],sizes=[10,20,40,60,80],keys=Object.keys(ALGOS),tm={},vs={};
+  keys.forEach(k=>{tm[k]=[];vs[k]=[]});
+  sizes.forEach(k=>{build(k,k,5);
+    keys.forEach(a=>{const ts=[];let res;for(let r=0;r<3;r++){const t0=performance.now();res=ALGOS[a](0,N-1);ts.push(performance.now()-t0)}
+      ts.sort((x,y)=>x-y);tm[a].push(Math.max(ts[1],0.01));vs[a].push(res.visited)})});
+  [N,P,adj,edgeKeys]=keep;
+  const xs=sizes.map(k=>k*k),mk=d=>keys.map(k=>({name:LABEL[k].replace(" (fewest hops)",""),c:COLORS[k],vals:d[k]}));
+  $("charts").innerHTML=`<p class="cap">Runtime in milliseconds (log scale), median of 3 runs</p>`+lineChart(xs,mk(tm),"nodes in graph","Line chart of runtime against graph size for four algorithms")+
+    `<p class="cap">Nodes visited (log scale)</p>`+lineChart(xs,mk(vs),"nodes in graph","Line chart of nodes visited against graph size for four algorithms");
+  $("bstat").textContent="Done.";$("bench").disabled=false}
+
+/* search box: trie prefix lookup, hash-map resolve */
+const q=$("q"),hits=$("hits");
+q.addEventListener("input",()=>{
+  const v=q.value.trim();hits.innerHTML="";if(!v)return;
+  trie.find(v).slice(0,6).forEach(id=>{const li=document.createElement("li"),b=document.createElement("button");
+    b.type="button";b.textContent=NAMES[id];b.onclick=()=>{pick(byName.get(NAMES[id]));q.value="";hits.innerHTML=""};
+    li.appendChild(b);hits.appendChild(li)})});
+q.addEventListener("keydown",e=>{if(e.key==="Escape"){q.value="";hits.innerHTML=""}});
+
+$("run").onclick=run;$("cmpbtn").onclick=compare;
+$("algo").onchange=run;
+$("reset").onclick=()=>{S=T=null;clearSearch();$("cmp").innerHTML="";paintEnds()};
+
+$("hmalgo").onchange=heat;
+$("bench").onclick=()=>{$("bench").disabled=true;$("bstat").textContent="Running, the page may pause for a moment…";setTimeout(bench,40)};
+paintEnds();run();avgEffort();analytics();more();extra();extra2();links();
+})();
+</script>
+</body>
+</html>
