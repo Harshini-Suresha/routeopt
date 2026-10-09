@@ -13,6 +13,7 @@ st.markdown("🌐 **Main website:** https://harshini-suresha.github.io/routeopt/
 
 # ------------------------------------------------------------------ sidebar
 sb = st.sidebar
+sb.link_button("🌐 Open main website", "https://harshini-suresha.github.io/routeopt/")
 sb.header("Map")
 rows = sb.slider("Rows", 3, 12, 6)
 cols = sb.slider("Columns", 3, 12, 6)
