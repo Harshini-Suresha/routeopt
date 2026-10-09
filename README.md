@@ -16,7 +16,14 @@ a benchmarking framework. PES University, Data Structures & Algorithms.
 - **Data:** [`data/nodes.csv`](data/nodes.csv) (36 locations),
   [`data/edges.csv`](data/edges.csv) (65 roads),
   [`data/benchmark_allpairs.csv`](data/benchmark_allpairs.csv)
-  (4 algorithms × 100 random pairs)
+  (4 algorithms × 100 random pairs),
+  8 × 8 map (`nodes_8x8.csv`, `edges_8x8.csv`, `benchmark_8x8.csv`),
+  [`data/scaling_benchmark.csv`](data/scaling_benchmark.csv) (measured scaling, 25–900 nodes)
+
+The website has a **map-size switcher** (6 × 6 / 8 × 8 / 10 × 10, via `?size=8`
+in the URL). Analytics run over all pairs on the small map and a fixed 800-pair
+sample on bigger maps so the page stays fast. It also shows a **measured Python
+scaling** chart (same `routeopt.benchmark()` the notebook uses).
 
 ## What's what (the two apps are different)
 

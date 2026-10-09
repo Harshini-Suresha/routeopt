@@ -15,7 +15,18 @@ NAMES = ["Harbour Gate", "Mill Lane", "Old Market", "Canal Street", "Station Squ
          "Bridge End", "Foundry", "Granary", "Hospital", "Ironworks", "Junction", "Kiln Row",
          "Lantern Court", "Museum", "North Gate", "Observatory", "Parkside", "Quarry Bend",
          "Rose Court", "South Quay", "Tannery", "University", "Viaduct", "Wharf", "Yew Tree",
-         "Zenith Plaza", "Abbey", "Brook End", "Cathedral"]
+         "Zenith Plaza", "Abbey", "Brook End", "Cathedral",
+         "Alder Gate", "Birch Crescent", "Cedar Wharf", "Dove Lane", "Elder Court", "Fern Hollow",
+         "Grove End", "Hazel Drive", "Ivy Terrace", "Juniper Row", "Acorn Way", "Beechwood",
+         "Chestnut Hill", "Dogwood", "Elm Park", "Fig Orchard", "Gorse Field", "Holly Bank",
+         "Iris Meadow", "Jasmine Walk", "Kingfisher Quay", "Larkspur Lane", "Magnolia Court", "Nettlebed",
+         "Oakenshaw", "Primrose Hill", "Quince Orchard", "Rowan Gate", "Sycamore", "Thistledown",
+         "Umber Quay", "Vetch Field", "Willowbank", "Yarrow", "Amberley", "Brambletye",
+         "Copperfield", "Dunmore", "Easthaven", "Foxglove", "Goldcrest", "Heathfield",
+         "Inkwell", "Jubilee", "Kestrel Rise", "Linen Yard", "Marlowe", "Netherby",
+         "Osprey Point", "Plover Court", "Quartz Row", "Ravenscar", "Saltmarsh", "Tidewater",
+         "Upton", "Valve House", "Wexford", "Xylon", "Yarmouth", "Zennor",
+         "Ashcombe", "Blackfriars", "Crows Nest", "Dovecote"]
 TEAL, AMBER, ROUTE, INK, EDGE = "#0E7C86", "#E9A23B", "#C81E5A", "#14232D", "#B3C2CB"
 
 

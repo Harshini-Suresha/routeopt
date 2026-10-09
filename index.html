@@ -102,6 +102,13 @@ main{padding-bottom:72px}
 
     <div class="demo" id="demo">
       <div class="bar">
+        <label>Map size
+          <select id="mapsize">
+            <option value="6">6 × 6 (36 places)</option>
+            <option value="8">8 × 8 (64 places)</option>
+            <option value="10">10 × 10 (100 places)</option>
+          </select>
+        </label>
         <label>Algorithm
           <select id="algo">
             <option value="dijkstra">Dijkstra</option>
@@ -173,10 +180,10 @@ main{padding-bottom:72px}
       <h2>Data and benchmarks</h2>
       <div>
         <h3>Average search effort on the demo map</h3>
-        <p>Mean over every pair of the 36 locations (<span id="pairs">630</span> pairs), computed in your browser when the page loads.</p>
+        <p>Mean over <span id="pairs">630</span> pairs of <span id="nloc">36</span> locations (all pairs, or a fixed sample on bigger maps), computed in your browser when the page loads.</p>
         <div id="avg"></div>
         <h3>Route quality</h3>
-        <p>How much more the average route costs than the cheapest one, over every pair. BFS minimises hops, not cost.</p>
+        <p>How much more the average route costs than the cheapest one, over the sampled pairs. BFS minimises hops, not cost.</p>
         <div id="gap"></div>
         <h3>The map in numbers</h3>
         <dl class="stats">
@@ -187,7 +194,7 @@ main{padding-bottom:72px}
         </dl>
         <div class="pair"><div><p class="cap">Roads per location</p><div id="deg"></div></div><div><p class="cap">Road weight</p><div id="wt"></div></div></div>
         <h3>Which locations get searched most</h3>
-        <p>Every pair of locations is searched, and each location visited along the way is counted.</p>
+        <p>Many pairs of locations are searched (every pair on the 6 × 6 map, a fixed sample on bigger maps), and each location visited along the way is counted.</p>
         <label class="cap">Algorithm <select id="hmalgo"><option value="dijkstra">Dijkstra</option><option value="astar">A* search</option><option value="bf">Bellman–Ford</option><option value="bfs">BFS (fewest hops)</option></select></label>
         <svg id="heat" class="chart" viewBox="0 0 800 520" role="img" aria-label="Map shaded by how often each location is visited" style="background:#fff;border:1px solid var(--rule);border-radius:6px;margin-top:8px"></svg>
         <p class="cap" id="hmtop"></p>
@@ -205,7 +212,7 @@ main{padding-bottom:72px}
         <p class="cap">Average heap pushes per search</p><div id="hpush"></div>
         <p class="cap">Average peak heap size</p><div id="hpeak"></div>
         <h3>Time per search</h3>
-        <p>Average time per search over every pair, measured in your browser. Timings vary between devices.</p>
+        <p>Average time per search over the sampled pairs, measured in your browser. Timings vary between devices.</p>
         <div id="tm"></div>
         <h3>How far is everything from one place</h3>
         <p>Cheapest route cost from the chosen location to every other location. Darker means farther.</p>
@@ -213,11 +220,11 @@ main{padding-bottom:72px}
         <svg id="iso" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map shaded by cheapest route cost from the chosen start"></svg>
         <p class="cap" id="isocap"></p>
         <h3>Which roads carry the most routes</h3>
-        <p>The cheapest route for every pair is traced, and each road on it is counted. Thicker means more routes.</p>
+        <p>The cheapest route for every sampled pair is traced, and each road on it is counted. Thicker means more routes.</p>
         <svg id="usage" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map with road thickness showing how many cheapest routes use each road"></svg>
         <p class="cap" id="usagecap"></p>
         <h3>Route costs</h3>
-        <p class="cap">Cheapest route cost over all pairs</p><div id="costh"></div>
+        <p class="cap">Cheapest route cost over all sampled pairs</p><div id="costh"></div>
         <p class="cap">Route cost divided by straight-line distance. 1.0 would be a straight road.</p><div id="detour"></div>
         <h3>Which locations sit in the middle</h3>
         <p>A location is counted each time it lies between the start and end of a cheapest route. Darker means more routes pass through it.</p>
@@ -233,17 +240,24 @@ main{padding-bottom:72px}
         <p>Builds grid graphs from 100 to 6,400 nodes and times each algorithm corner to corner. Timings depend on your device.</p>
         <button class="go" id="bench">Run scaling benchmark</button><span class="status" id="bstat" aria-live="polite"></span>
         <div id="charts"></div>
+        <h3>Measured scaling (Python)</h3>
+        <p>Corner-to-corner searches on k × k grids, median of 3 runs with <code>routeopt.py</code> — the same code the Streamlit app and notebook use. Raw numbers: <a href="data/scaling_benchmark.csv" download>scaling_benchmark.csv</a>.</p>
+        <div id="pybench"></div>
       </div>
     </section>
 
     <section class="block" id="data">
       <h2>Data</h2>
       <div>
-        <p>The demo map is generated from seed 11 (6 × 6 grid, 36 locations, 65 roads). The same data is checked into the repo so you can reproduce every chart:</p>
+        <p>The demo map is generated from seed 11 (6 × 6 grid, 36 locations, 65 roads; switch to 8 × 8 or 10 × 10 above). The same data is checked into the repo so you can reproduce every chart:</p>
         <ul class="links">
-          <li><a href="data/nodes.csv" download>nodes.csv</a><span>36 locations: id, label, x, y</span></li>
-          <li><a href="data/edges.csv" download>edges.csv</a><span>65 roads: endpoints, labels, weight</span></li>
-          <li><a href="data/benchmark_allpairs.csv" download>benchmark_allpairs.csv</a><span>400 rows: 4 algorithms × 100 random pairs (visited, edges checked, ms, cost)</span></li>
+          <li><a href="data/nodes.csv" download>nodes.csv</a><span>6 × 6 map: 36 locations (id, label, x, y)</span></li>
+          <li><a href="data/edges.csv" download>edges.csv</a><span>6 × 6 map: 65 roads (endpoints, labels, weight)</span></li>
+          <li><a href="data/benchmark_allpairs.csv" download>benchmark_allpairs.csv</a><span>6 × 6 map: 400 rows, 4 algorithms × 100 random pairs</span></li>
+          <li><a href="data/nodes_8x8.csv" download>nodes_8x8.csv</a><span>8 × 8 map: 64 locations (id, label, x, y)</span></li>
+          <li><a href="data/edges_8x8.csv" download>edges_8x8.csv</a><span>8 × 8 map: 121 roads</span></li>
+          <li><a href="data/benchmark_8x8.csv" download>benchmark_8x8.csv</a><span>8 × 8 map: 1,200 rows, 4 algorithms × 300 random pairs</span></li>
+          <li><a href="data/scaling_benchmark.csv" download>scaling_benchmark.csv</a><span>Measured scaling: corner-to-corner on 25–900 node grids, median of 3 runs</span></li>
         </ul>
         <p>Regenerate them any time with <code>routeopt.py</code>: <code>make_grid_graph(6, 6, 11)</code> + <code>pair_effort(g, 100)</code>. The notebook walks through this step by step, and the <a href="https://routeopt-ai.streamlit.app/" target="_blank" rel="noopener">Streamlit app</a> lets you rebuild the map with different seeds and sizes.</p>
       </div>
@@ -266,7 +280,7 @@ main{padding-bottom:72px}
 const LINKS={repo:"Harshini-Suresha/routeopt",streamlit:"https://routeopt-ai.streamlit.app/",report:""};
 (function(){
 const W=800,H=520;
-const NAMES=["Harbour Gate","Mill Lane","Old Market","Canal Street","Station Square","Library","Clock Tower","Botanic Garden","Riverside","Fort Road","Orchard Hill","Chapel Yard","Bridge End","Foundry","Granary","Hospital","Ironworks","Junction","Kiln Row","Lantern Court","Museum","North Gate","Observatory","Parkside","Quarry Bend","Rose Court","South Quay","Tannery","University","Viaduct","Wharf","Yew Tree","Zenith Plaza","Abbey","Brook End","Cathedral"];
+const NAMES=["Harbour Gate","Mill Lane","Old Market","Canal Street","Station Square","Library","Clock Tower","Botanic Garden","Riverside","Fort Road","Orchard Hill","Chapel Yard","Bridge End","Foundry","Granary","Hospital","Ironworks","Junction","Kiln Row","Lantern Court","Museum","North Gate","Observatory","Parkside","Quarry Bend","Rose Court","South Quay","Tannery","University","Viaduct","Wharf","Yew Tree","Zenith Plaza","Abbey","Brook End","Cathedral","Alder Gate","Birch Crescent","Cedar Wharf","Dove Lane","Elder Court","Fern Hollow","Grove End","Hazel Drive","Ivy Terrace","Juniper Row","Acorn Way","Beechwood","Chestnut Hill","Dogwood","Elm Park","Fig Orchard","Gorse Field","Holly Bank","Iris Meadow","Jasmine Walk","Kingfisher Quay","Larkspur Lane","Magnolia Court","Nettlebed","Oakenshaw","Primrose Hill","Quince Orchard","Rowan Gate","Sycamore","Thistledown","Umber Quay","Vetch Field","Willowbank","Yarrow","Amberley","Brambletye","Copperfield","Dunmore","Easthaven","Foxglove","Goldcrest","Heathfield","Inkwell","Jubilee","Kestrel Rise","Linen Yard","Marlowe","Netherby","Osprey Point","Plover Court","Quartz Row","Ravenscar","Saltmarsh","Tidewater","Upton","Valve House","Wexford","Xylon","Yarmouth","Zennor","Ashcombe","Blackfriars","Crows Nest","Dovecote"];
 
 /* seeded random so the map is the same on every visit */
 function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -283,7 +297,16 @@ function build(cols,rows,seed,spread=0.6){
     if(r<rows-1)link(i,i+cols);
     if(r<rows-1&&c<cols-1&&R()<.3)link(i,i+cols+1);
     if(r<rows-1&&c>0&&R()<.2)link(i,i+cols-1)}}
-build(6,6,11);
+/* map size comes from ?size=6, 8 or 10 so benchmarks stay shareable; default 6 */
+const MSZ=Math.min(10,Math.max(6,+new URLSearchParams(location.search).get("size")||6));
+build(MSZ,MSZ,11);
+
+/* sampled pairs: all pairs up to 800, else a fixed seeded sample so big maps stay fast */
+function sRng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function pairSet(){const p=[];for(let a=0;a<N;a++)for(let b=a+1;b<N;b++)p.push([a,b]);
+  if(p.length<=800)return p;const R=sRng(99);
+  for(let i=p.length-1;i>0;i--){const j=Math.floor(R()*(i+1));const t=p[i];p[i]=p[j];p[j]=t}
+  return p.slice(0,800)}
 
 /* binary min-heap */
 class Heap{constructor(){this.a=[]}
@@ -404,8 +427,8 @@ function lineChart(xs,series,xlabel,desc){
 
 function avgEffort(){
   const keys=Object.keys(ALGOS),sv=keys.map(()=>0),se=keys.map(()=>0);let pairs=0;
-  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){pairs++;keys.forEach((k,i)=>{const r=ALGOS[k](a,b);sv[i]+=r.visited;se[i]+=r.edges})}
-  $("pairs").textContent=pairs;const names=keys.map(k=>LABEL[k]),f=v=>v.toFixed(1);
+  for(const [a,b] of pairSet()){pairs++;keys.forEach((k,i)=>{const r=ALGOS[k](a,b);sv[i]+=r.visited;se[i]+=r.edges})}
+  $("pairs").textContent=pairs;$("nloc").textContent=N;const names=keys.map(k=>LABEL[k]),f=v=>v.toFixed(1);
   $("avg").innerHTML=`<p class="cap">Average nodes visited</p>`+barChart(names,sv.map(v=>v/pairs),f)+`<p class="cap">Average edges checked</p>`+barChart(names,se.map(v=>v/pairs),f)}
 
 function histChart(counts,labels,xl){
@@ -418,7 +441,7 @@ function analytics(){
   const keys=Object.keys(ALGOS),names=keys.map(k=>LABEL[k]),E=edgeKeys.length;
   /* route quality */
   const tot=keys.map(()=>0);let pairs=0;
-  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){pairs++;const base=ALGOS.dijkstra(a,b).cost;keys.forEach((k,i)=>tot[i]+=ALGOS[k](a,b).cost/base)}
+  for(const [a,b] of pairSet()){pairs++;const base=ALGOS.dijkstra(a,b).cost;keys.forEach((k,i)=>tot[i]+=ALGOS[k](a,b).cost/base)}
   $("gap").innerHTML=barChart(names,tot.map(v=>100*(v/pairs-1)),v=>v.toFixed(1)+"% over best");
   /* map in numbers */
   let dia=0;for(let s=0;s<N;s++){const d=Array(N).fill(-1);d[s]=0;const q=[s];for(let i=0;i<q.length;i++)for(const{to}of adj[q[i]])if(d[to]<0){d[to]=d[q[i]]+1;q.push(to)}dia=Math.max(dia,...d)}
@@ -436,7 +459,7 @@ function analytics(){
   heat()}
 function heat(){
   const k=$("hmalgo").value,cnt=Array(N).fill(0);let pairs=0;
-  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){pairs++;ALGOS[k](a,b).trace.forEach(n=>cnt[n]++)}
+  for(const [a,b] of pairSet()){pairs++;ALGOS[k](a,b).trace.forEach(n=>cnt[n]++)}
   const mx=Math.max(...cnt),mn=Math.min(...cnt),c0=[236,246,246],c1=[14,124,134];
   const col=v=>{const t=(v-mn)/((mx-mn)||1);return`rgb(${c0.map((x,i)=>Math.round(x+(c1[i]-x)*t)).join(",")})`};
   const top=cnt.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,3);
@@ -457,7 +480,7 @@ function linChart(xs,series,xl,desc){
   return o+"</svg>"}
 function more(){
   const keys=Object.keys(ALGOS),names=keys.map(k=>LABEL[k]),acc={},sv=[0,0,0,0,0],hp=[0,0],pk=[0,0],tm=[];let np=0,tot=0;
-  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){np++;const r=keys.map(k=>ALGOS[k](a,b)),h=r[3].path.length-1;
+  for(const [a,b] of pairSet()){np++;const r=keys.map(k=>ALGOS[k](a,b)),h=r[3].path.length-1;
     const c=acc[h]||(acc[h]={n:0,v:keys.map(()=>0)});c.n++;r.forEach((x,i)=>c.v[i]+=x.visited);
     const sp=100*(1-r[1].visited/r[0].visited);tot+=sp;sv[sp<=0?0:sp<=20?1:sp<=40?2:sp<=60?3:4]++;
     hp[0]+=r[0].pushes;hp[1]+=r[1].pushes;pk[0]+=r[0].peak;pk[1]+=r[1].peak}
@@ -467,7 +490,7 @@ function more(){
   $("sav").innerHTML=histChart(sv,["none","1–20%","21–40%","41–60%","over 60%"],"fewer nodes visited than Dijkstra");
   $("hpush").innerHTML=barChart(["Dijkstra","A* search"],hp.map(v=>v/np),v=>v.toFixed(1));
   $("hpeak").innerHTML=barChart(["Dijkstra","A* search"],pk.map(v=>v/np),v=>v.toFixed(1));
-  keys.forEach((k,i)=>{const t0=performance.now();for(let a=0;a<N;a++)for(let b=a+1;b<N;b++)ALGOS[k](a,b);tm[i]=(performance.now()-t0)*1000/np});
+  keys.forEach((k,i)=>{const t0=performance.now();for(const [a,b] of pairSet())ALGOS[k](a,b);tm[i]=(performance.now()-t0)*1000/np});
   $("tm").innerHTML=barChart(names,tm,v=>v.toFixed(1)+" µs")}
 function shade(t){const c0=[236,246,246],c1=[14,124,134];return`rgb(${c0.map((x,i)=>Math.round(x+(c1[i]-x)*t)).join(",")})`}
 function distFrom(s){const d=Array(N).fill(Infinity),q=new Heap(),done=new Set();d[s]=0;q.push(0,s);
@@ -482,7 +505,7 @@ function iso(){
 function extra(){
   $("isosrc").innerHTML=NAMES.map((n,i)=>`<option value="${i}">${n}</option>`).join("");$("isosrc").onchange=iso;iso();
   const use={},costs=[],ratios=[];
-  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){const r=ALGOS.dijkstra(a,b);
+  for(const [a,b] of pairSet()){const r=ALGOS.dijkstra(a,b);
     for(let i=1;i<r.path.length;i++){const u=r.path[i-1],v=r.path[i],k=Math.min(u,v)+"-"+Math.max(u,v);use[k]=(use[k]||0)+1}
     costs.push(r.cost);ratios.push(r.cost/Math.hypot(P[a].x-P[b].x,P[a].y-P[b].y))}
   const mx=Math.max(...Object.values(use)),top=Object.entries(use).sort((x,y)=>y[1]-x[1])[0];
@@ -499,7 +522,7 @@ function binChart(vals,nb,lbl,xl){const lo=Math.min(...vals),hi=Math.max(...vals
   vals.forEach(v=>c[Math.min(nb-1,Math.floor((v-lo)/st))]++);return histChart(c,c.map((_,i)=>lbl(lo+i*st)+"–"+lbl(lo+(i+1)*st)),xl)}
 function extra2(){
   const mid=Array(N).fill(0),passes=[];
-  for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){const r=ALGOS.dijkstra(a,b);for(let i=1;i<r.path.length-1;i++)mid[r.path[i]]++;passes.push(ALGOS.bf(a,b).passes)}
+  for(const [a,b] of pairSet()){const r=ALGOS.dijkstra(a,b);for(let i=1;i<r.path.length-1;i++)mid[r.path[i]]++;passes.push(ALGOS.bf(a,b).passes)}
   const mx=Math.max(...mid),top=mid.map((v,i)=>[v,i]).sort((x,y)=>y[0]-x[0]).slice(0,6);
   $("between").innerHTML=mapBase()+P.map((p,i)=>`<circle cx="${p.x}" cy="${p.y}" r="13" fill="${shade(mid[i]/mx)}" stroke="#14232D" stroke-width="2"><title>${NAMES[i]}: on ${mid[i]} routes</title></circle>`).join("")+
     top.slice(0,3).map(([v,i])=>`<text class="lbl" x="${P[i].x}" y="${P[i].y-20}" text-anchor="middle">${NAMES[i]}</text>`).join("");
@@ -507,8 +530,8 @@ function extra2(){
   const pmin=Math.min(...passes),pmax=Math.max(...passes);
   $("passes").innerHTML=pmax-pmin<8?histChart(Array.from({length:pmax-pmin+1},(_,i)=>passes.filter(p=>p===pmin+i).length),Array.from({length:pmax-pmin+1},(_,i)=>pmin+i),"passes until nothing improves"):binChart(passes,7,v=>Math.round(v),"passes until nothing improves");
   const keep=[N,P,adj,edgeKeys],sp=[0,.3,.6,.9,1.2],gp=[],sv=[];
-  sp.forEach(x=>{build(6,6,11,x);let n=0,g=0,v=0;
-    for(let a=0;a<N;a++)for(let b=a+1;b<N;b++){n++;const d=ALGOS.dijkstra(a,b);g+=ALGOS.bfs(a,b).cost/d.cost;v+=1-ALGOS.astar(a,b).visited/d.visited}
+  sp.forEach(x=>{build(MSZ,MSZ,11,x);let n=0,g=0,v=0;
+    for(const [a,b] of pairSet()){n++;const d=ALGOS.dijkstra(a,b);g+=ALGOS.bfs(a,b).cost/d.cost;v+=1-ALGOS.astar(a,b).visited/d.visited}
     gp.push(100*(g/n-1));sv.push(100*v/n)});
   [N,P,adj,edgeKeys]=keep;
   $("sens").innerHTML=linChart(sp.map(x=>"0.8–"+(0.8+x).toFixed(1)),[{name:"BFS extra cost %",c:COLORS.bfs,vals:gp},{name:"A* fewer nodes %",c:COLORS.astar,vals:sv}],"road weight as a multiple of distance","Line chart of BFS extra cost and A* node savings against road weight spread")}
@@ -520,11 +543,17 @@ function links(){
   if(LINKS.streamlit)L.push(["Streamlit app",LINKS.streamlit,"Interactive explorer with a scaling benchmark — Python/Plotly version of this site"]);
   if(LINKS.repo){L.push(["Map data (nodes.csv)","https://github.com/"+LINKS.repo+"/blob/main/data/nodes.csv","36 locations with coordinates — same seed as the demo map"]);
     L.push(["Map data (edges.csv)","https://github.com/"+LINKS.repo+"/blob/main/data/edges.csv","65 roads with weights"]);
-    L.push(["Benchmark data (benchmark_allpairs.csv)","https://github.com/"+LINKS.repo+"/blob/main/data/benchmark_allpairs.csv","400 rows: 4 algorithms × 100 random pairs, nodes visited / edges checked / ms / cost"])}
+    L.push(["Benchmark data (benchmark_allpairs.csv)","https://github.com/"+LINKS.repo+"/blob/main/data/benchmark_allpairs.csv","400 rows: 4 algorithms × 100 random pairs, nodes visited / edges checked / ms / cost"]);
+    L.push(["Bigger map + scaling data (data/)","https://github.com/"+LINKS.repo+"/tree/main/data","8 × 8 map datasets and the measured Python scaling benchmark"])}
   if(LINKS.report)L.push(["Project report",LINKS.report,"Design, analysis and results"]);
   if(!L.length)return;
   $("linklist").innerHTML=L.map(([t,u,d])=>`<li><a href="${u}" target="_blank" rel="noopener">${t}</a><span>${d}</span></li>`).join("");
   }
+function pybench(){
+  const xs=[25,100,225,400,900];
+  const mk=v=>["dijkstra","astar","bf","bfs"].map(k=>({name:LABEL[k].replace(" (fewest hops)",""),c:COLORS[k],vals:v[k]}));
+  $("pybench").innerHTML=`<p class="cap">Runtime in milliseconds, median of 3 runs (log scale)</p>`+lineChart(xs,mk({dijkstra:[0.0169,0.0755,0.1724,0.2969,0.6787],astar:[0.0193,0.0655,0.1809,0.3061,0.7407],bf:[0.0154,0.1004,0.2214,0.4079,1.1361],bfs:[0.0062,0.0258,0.0587,0.1026,0.2331]}),"nodes in grid graph","Line chart of measured Python runtime against graph size for four algorithms")+
+    `<p class="cap">Nodes visited (log scale)</p>`+lineChart(xs,mk({dijkstra:[25,99,225,400,900],astar:[20,64,185,314,796],bf:[25,100,225,400,900],bfs:[25,100,225,400,900]}),"nodes in grid graph","Line chart of nodes visited against graph size for four algorithms")}
 function bench(){
   const keep=[N,P,adj,edgeKeys],sizes=[10,20,40,60,80],keys=Object.keys(ALGOS),tm={},vs={};
   keys.forEach(k=>{tm[k]=[];vs[k]=[]});
@@ -552,7 +581,9 @@ $("reset").onclick=()=>{S=T=null;clearSearch();$("cmp").innerHTML="";paintEnds()
 
 $("hmalgo").onchange=heat;
 $("bench").onclick=()=>{$("bench").disabled=true;$("bstat").textContent="Running, the page may pause for a moment…";setTimeout(bench,40)};
-paintEnds();run();avgEffort();analytics();more();extra();extra2();links();
+$("mapsize").value=String(MSZ);
+$("mapsize").onchange=e=>{const u=new URL(location.href);u.searchParams.set("size",e.target.value);location.href=u};
+paintEnds();run();avgEffort();analytics();more();extra();extra2();pybench();links();
 })();
 </script>
 </body>

@@ -1,0 +1,122 @@
+u,v,u_label,v_label,weight
+0,1,Harbour Gate,Mill Lane,1.2323
+0,8,Harbour Gate,Riverside,1.753
+0,9,Harbour Gate,Fort Road,1.4615
+1,2,Mill Lane,Old Market,0.7862
+1,9,Mill Lane,Fort Road,1.5126
+2,3,Old Market,Canal Street,1.0229
+2,10,Old Market,Orchard Hill,0.5102
+2,11,Old Market,Chapel Yard,1.0993
+3,4,Canal Street,Station Square,1.1391
+3,11,Canal Street,Chapel Yard,0.5868
+4,5,Station Square,Library,0.6492
+4,12,Station Square,Bridge End,0.6152
+5,6,Library,Clock Tower,1.3094
+5,13,Library,Foundry,1.3915
+5,12,Library,Bridge End,1.0867
+6,7,Clock Tower,Botanic Garden,1.3082
+6,14,Clock Tower,Granary,1.4313
+7,15,Botanic Garden,Hospital,1.2551
+8,9,Riverside,Fort Road,1.0076
+8,16,Riverside,Ironworks,0.808
+9,17,Fort Road,Junction,0.8031
+10,11,Orchard Hill,Chapel Yard,1.5675
+10,18,Orchard Hill,Kiln Row,2.5366
+11,12,Chapel Yard,Bridge End,1.02
+11,19,Chapel Yard,Lantern Court,2.1177
+12,13,Bridge End,Foundry,1.0302
+12,20,Bridge End,Museum,1.1673
+13,14,Foundry,Granary,1.1496
+13,21,Foundry,North Gate,0.7989
+14,15,Granary,Hospital,1.1108
+14,22,Granary,Observatory,0.808
+15,23,Hospital,Parkside,1.0564
+15,22,Hospital,Observatory,1.4113
+16,24,Ironworks,Quarry Bend,1.413
+17,25,Junction,Rose Court,1.2197
+18,19,Kiln Row,Lantern Court,0.875
+18,26,Kiln Row,South Quay,0.4284
+19,27,Lantern Court,Tannery,0.6569
+20,21,Museum,North Gate,1.3224
+20,28,Museum,University,1.367
+20,27,Museum,Tannery,1.3261
+21,22,North Gate,Observatory,1.8808
+21,29,North Gate,Viaduct,1.6428
+22,23,Observatory,Parkside,0.9356
+22,30,Observatory,Wharf,1.1764
+23,31,Parkside,Yew Tree,1.6406
+24,25,Quarry Bend,Rose Court,0.5726
+24,32,Quarry Bend,Zenith Plaza,0.8418
+24,33,Quarry Bend,Abbey,0.4219
+25,26,Rose Court,South Quay,2.0071
+25,33,Rose Court,Abbey,0.9522
+26,27,South Quay,Tannery,1.1307
+26,34,South Quay,Brook End,0.6268
+26,35,South Quay,Cathedral,1.6198
+26,33,South Quay,Abbey,2.1243
+27,28,Tannery,University,0.3687
+27,35,Tannery,Cathedral,1.3933
+27,36,Tannery,Alder Gate,1.1998
+28,36,University,Alder Gate,1.4222
+28,37,University,Birch Crescent,1.2866
+28,35,University,Cathedral,1.2331
+29,30,Viaduct,Wharf,0.563
+29,37,Viaduct,Birch Crescent,1.6992
+30,31,Wharf,Yew Tree,1.5724
+30,38,Wharf,Cedar Wharf,1.1714
+30,39,Wharf,Dove Lane,1.166
+31,39,Yew Tree,Dove Lane,0.983
+31,38,Yew Tree,Cedar Wharf,1.7202
+32,33,Zenith Plaza,Abbey,1.22
+32,40,Zenith Plaza,Elder Court,1.8189
+33,34,Abbey,Brook End,1.588
+33,41,Abbey,Fern Hollow,2.2306
+33,40,Abbey,Elder Court,2.3156
+34,35,Brook End,Cathedral,0.7502
+34,42,Brook End,Grove End,1.3673
+35,36,Cathedral,Alder Gate,0.872
+35,43,Cathedral,Hazel Drive,1.588
+36,37,Alder Gate,Birch Crescent,1.1407
+36,44,Alder Gate,Ivy Terrace,1.1385
+37,38,Birch Crescent,Cedar Wharf,1.2419
+37,45,Birch Crescent,Juniper Row,0.6088
+38,39,Cedar Wharf,Dove Lane,1.214
+38,46,Cedar Wharf,Acorn Way,1.3308
+39,47,Dove Lane,Beechwood,1.0845
+40,48,Elder Court,Chestnut Hill,1.1116
+41,42,Fern Hollow,Grove End,1.1237
+41,49,Fern Hollow,Dogwood,0.6097
+41,48,Fern Hollow,Chestnut Hill,1.7558
+42,50,Grove End,Elm Park,1.0612
+42,49,Grove End,Dogwood,1.3657
+43,44,Hazel Drive,Ivy Terrace,0.6531
+43,51,Hazel Drive,Fig Orchard,1.1232
+44,45,Ivy Terrace,Juniper Row,1.7387
+44,52,Ivy Terrace,Gorse Field,0.8173
+44,53,Ivy Terrace,Holly Bank,1.2179
+45,46,Juniper Row,Acorn Way,1.6881
+45,53,Juniper Row,Holly Bank,1.0096
+46,47,Acorn Way,Beechwood,0.6976
+46,54,Acorn Way,Iris Meadow,1.8871
+47,55,Beechwood,Jasmine Walk,1.4485
+48,49,Chestnut Hill,Dogwood,1.2768
+48,56,Chestnut Hill,Kingfisher Quay,1.2989
+49,50,Dogwood,Elm Park,1.2863
+49,57,Dogwood,Larkspur Lane,1.0734
+50,51,Elm Park,Fig Orchard,1.8527
+50,58,Elm Park,Magnolia Court,1.365
+51,59,Fig Orchard,Nettlebed,0.8701
+52,53,Gorse Field,Holly Bank,0.9143
+52,60,Gorse Field,Oakenshaw,1.2577
+52,61,Gorse Field,Primrose Hill,1.2014
+53,54,Holly Bank,Iris Meadow,1.8053
+53,61,Holly Bank,Primrose Hill,1.4815
+53,62,Holly Bank,Quince Orchard,2.2472
+54,62,Iris Meadow,Quince Orchard,1.4205
+54,63,Iris Meadow,Rowan Gate,0.8503
+55,63,Jasmine Walk,Rowan Gate,1.3633
+56,57,Kingfisher Quay,Larkspur Lane,0.6885
+58,59,Magnolia Court,Nettlebed,0.6904
+59,60,Nettlebed,Oakenshaw,0.9968
+61,62,Primrose Hill,Quince Orchard,1.0831
+62,63,Quince Orchard,Rowan Gate,1.4101
