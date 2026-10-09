@@ -1,0 +1,66 @@
+u,v,u_label,v_label,weight
+0,1,Harbour Gate,Mill Lane,1.2447
+0,6,Harbour Gate,Clock Tower,1.5556
+0,7,Harbour Gate,Botanic Garden,1.5398
+1,2,Mill Lane,Old Market,0.6022
+1,7,Mill Lane,Botanic Garden,0.6767
+1,8,Mill Lane,Riverside,1.718
+2,3,Old Market,Canal Street,0.9711
+2,8,Old Market,Riverside,1.363
+3,4,Canal Street,Station Square,1.4119
+3,9,Canal Street,Fort Road,1.5095
+3,8,Canal Street,Riverside,2.0369
+4,5,Station Square,Library,0.6854
+4,10,Station Square,Orchard Hill,0.4467
+5,11,Library,Chapel Yard,0.8286
+5,10,Library,Orchard Hill,1.0299
+6,7,Clock Tower,Botanic Garden,1.5261
+6,12,Clock Tower,Bridge End,0.5744
+7,8,Botanic Garden,Riverside,2.0295
+7,13,Botanic Garden,Foundry,1.6016
+8,14,Riverside,Granary,0.8751
+9,15,Fort Road,Hospital,0.9389
+10,16,Orchard Hill,Ironworks,2.1975
+11,17,Chapel Yard,Junction,1.2613
+11,16,Chapel Yard,Ironworks,1.5232
+12,13,Bridge End,Foundry,0.8494
+12,18,Bridge End,Kiln Row,2.1851
+12,19,Bridge End,Lantern Court,2.667
+13,14,Foundry,Granary,1.323
+13,19,Foundry,Lantern Court,1.2367
+13,18,Foundry,Kiln Row,1.4075
+14,15,Granary,Hospital,1.4101
+14,20,Granary,Museum,0.5358
+14,21,Granary,North Gate,1.2639
+15,21,Hospital,North Gate,0.4975
+15,20,Hospital,Museum,1.1918
+16,17,Ironworks,Junction,1.175
+16,22,Ironworks,Observatory,0.6948
+17,23,Junction,Parkside,1.5781
+18,19,Kiln Row,Lantern Court,1.0559
+18,24,Kiln Row,Quarry Bend,0.7666
+18,25,Kiln Row,Rose Court,0.308
+19,20,Lantern Court,Museum,0.9023
+19,25,Lantern Court,Rose Court,1.1622
+19,26,Lantern Court,South Quay,1.553
+20,21,Museum,North Gate,0.9819
+20,26,Museum,South Quay,1.8162
+20,27,Museum,Tannery,2.137
+21,22,North Gate,Observatory,1.7326
+21,27,North Gate,Tannery,1.7075
+22,23,Observatory,Parkside,1.2851
+22,28,Observatory,University,1.7644
+23,29,Parkside,Viaduct,1.1423
+24,25,Quarry Bend,Rose Court,0.7463
+24,30,Quarry Bend,Wharf,0.8772
+25,26,Rose Court,South Quay,1.4482
+25,31,Rose Court,Yew Tree,1.9688
+26,27,South Quay,Tannery,1.0902
+26,32,South Quay,Zenith Plaza,1.2414
+27,28,Tannery,University,0.3181
+27,33,Tannery,Abbey,1.2064
+27,34,Tannery,Brook End,1.3657
+28,34,University,Brook End,0.9865
+29,35,Viaduct,Cathedral,1.5846
+31,32,Yew Tree,Zenith Plaza,0.7032
+34,35,Brook End,Cathedral,1.022

@@ -6,16 +6,17 @@ a benchmarking framework. PES University, Data Structures & Algorithms.
 
 ## Live links
 
-> Replace `YOUR-USERNAME/YOUR-REPO` below with your real repo path, and paste
-> the same value into `LINKS.repo` at the top of `index.html`.
-
-- **Website (GitHub Pages):** https://YOUR-USERNAME.github.io/YOUR-REPO/
-- **Source code:** https://github.com/YOUR-USERNAME/YOUR-REPO
+- **Website (GitHub Pages):** https://harshini-suresha.github.io/routeopt/
+- **Streamlit app:** https://routeopt-ai.streamlit.app/
+- **Source code:** https://github.com/Harshini-Suresha/routeopt
 - **Notebook in Colab:**
-  https://colab.research.google.com/github/YOUR-USERNAME/YOUR-REPO/blob/main/RouteOpt.ipynb
+  https://colab.research.google.com/github/Harshini-Suresha/routeopt/blob/main/RouteOpt.ipynb
 - **Notebook file (.ipynb):**
-  https://github.com/YOUR-USERNAME/YOUR-REPO/blob/main/RouteOpt.ipynb
-- **Streamlit app:** your Streamlit Cloud URL after deploy (see below)
+  https://github.com/Harshini-Suresha/routeopt/blob/main/RouteOpt.ipynb
+- **Data:** [`data/nodes.csv`](data/nodes.csv) (36 locations),
+  [`data/edges.csv`](data/edges.csv) (65 roads),
+  [`data/benchmark_allpairs.csv`](data/benchmark_allpairs.csv)
+  (4 algorithms × 100 random pairs)
 
 ## What's what (the two apps are different)
 
@@ -25,6 +26,21 @@ a benchmarking framework. PES University, Data Structures & Algorithms.
 | `app.py` + `routeopt.py` | Interactive Streamlit app, Python/Plotly, includes scaling benchmark | Streamlit Community Cloud |
 | `RouteOpt.ipynb` | Notebook with every analysis, step by step | Colab / Jupyter |
 | `routeopt.py` | Core Python: graph, Dijkstra, A*, Bellman-Ford, BFS, DFS, Trie, benchmarks | Imported by `app.py` and the notebook |
+| `data/` | Checked-in datasets: `nodes.csv`, `edges.csv`, `benchmark_allpairs.csv` (seed 11) | Download from the website's Data section or GitHub |
+
+## Data
+
+Regenerate any time:
+
+```bash
+python3 -c "
+import routeopt as ro
+g = ro.make_grid_graph(6, 6, 11)   # same seed as the demo map
+print(len(g.edges), 'roads')
+rows = ro.pair_effort(g, n_pairs=100)
+print(len(rows), 'benchmark rows')
+"
+```
 
 ## Run locally
 
@@ -45,7 +61,7 @@ git init
 git add index.html app.py routeopt.py RouteOpt.ipynb requirements.txt README.md .gitignore
 git commit -m "RouteOpt: website, Streamlit app, notebook"
 git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPO.git
+git remote add origin https://github.com/Harshini-Suresha/routeopt.git
 git push -u origin main
 ```
 
@@ -54,8 +70,8 @@ git push -u origin main
 1. Push (above).
 2. GitHub repo → **Settings → Pages**.
 3. **Source:** Deploy from a branch → **Branch:** `main`, folder `/ (root)`.
-4. Save. Your site is live at `https://YOUR-USERNAME.github.io/YOUR-REPO/` in ~1 min.
-5. Edit `index.html` → set `LINKS.repo = "YOUR-USERNAME/YOUR-REPO"`, commit + push,
+4. Save. Your site is live at `https://Harshini-Suresha.github.io/routeopt/` in ~1 min.
+5. Edit `index.html` → set `LINKS.repo = "Harshini-Suresha/routeopt"`, commit + push,
    and the Links section auto-shows GitHub / Colab / notebook links.
 
 ## Deploy the Streamlit app (separate from the website)
@@ -72,7 +88,7 @@ git push -u origin main
 No setup needed once pushed. Just visit:
 
 ```
-https://colab.research.google.com/github/YOUR-USERNAME/YOUR-REPO/blob/main/RouteOpt.ipynb
+https://colab.research.google.com/github/Harshini-Suresha/routeopt/blob/main/RouteOpt.ipynb
 ```
 
 Contact: harshinisuresha7@gmail.com

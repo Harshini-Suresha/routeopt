@@ -236,6 +236,19 @@ main{padding-bottom:72px}
       </div>
     </section>
 
+    <section class="block" id="data">
+      <h2>Data</h2>
+      <div>
+        <p>The demo map is generated from seed 11 (6 × 6 grid, 36 locations, 65 roads). The same data is checked into the repo so you can reproduce every chart:</p>
+        <ul class="links">
+          <li><a href="data/nodes.csv" download>nodes.csv</a><span>36 locations: id, label, x, y</span></li>
+          <li><a href="data/edges.csv" download>edges.csv</a><span>65 roads: endpoints, labels, weight</span></li>
+          <li><a href="data/benchmark_allpairs.csv" download>benchmark_allpairs.csv</a><span>400 rows: 4 algorithms × 100 random pairs (visited, edges checked, ms, cost)</span></li>
+        </ul>
+        <p>Regenerate them any time with <code>routeopt.py</code>: <code>make_grid_graph(6, 6, 11)</code> + <code>pair_effort(g, 100)</code>. The notebook walks through this step by step, and the <a href="https://routeopt-ai.streamlit.app/" target="_blank" rel="noopener">Streamlit app</a> lets you rebuild the map with different seeds and sizes.</p>
+      </div>
+    </section>
+
     <section class="block" id="links">
       <h2>Links and contact</h2>
       <div>
@@ -250,7 +263,7 @@ main{padding-bottom:72px}
 /* Fill these in and redeploy. Empty entries are hidden.
    repo: "your-username/your-repo" (the repo holding index.html at root).
    Example: repo:"harshini/routeopt", streamlit:"https://your-app.streamlit.app", report:"https://..." */
-const LINKS={repo:"Harshini-Suresha/routeopt",streamlit:"",report:""};
+const LINKS={repo:"Harshini-Suresha/routeopt",streamlit:"https://routeopt-ai.streamlit.app/",report:""};
 (function(){
 const W=800,H=520;
 const NAMES=["Harbour Gate","Mill Lane","Old Market","Canal Street","Station Square","Library","Clock Tower","Botanic Garden","Riverside","Fort Road","Orchard Hill","Chapel Yard","Bridge End","Foundry","Granary","Hospital","Ironworks","Junction","Kiln Row","Lantern Court","Museum","North Gate","Observatory","Parkside","Quarry Bend","Rose Court","South Quay","Tannery","University","Viaduct","Wharf","Yew Tree","Zenith Plaza","Abbey","Brook End","Cathedral"];
@@ -504,7 +517,10 @@ function links(){
   if(LINKS.repo){L.push(["Source code on GitHub","https://github.com/"+LINKS.repo,"The website, notebook and Streamlit app"]);
     L.push(["Notebook file (.ipynb)","https://github.com/"+LINKS.repo+"/blob/main/RouteOpt.ipynb","View / download the notebook on GitHub"]);
     L.push(["Open the notebook in Colab","https://colab.research.google.com/github/"+LINKS.repo+"/blob/main/RouteOpt.ipynb","Run every analysis yourself"])}
-  if(LINKS.streamlit)L.push(["Streamlit app",LINKS.streamlit,"Interactive explorer with a scaling benchmark"]);
+  if(LINKS.streamlit)L.push(["Streamlit app",LINKS.streamlit,"Interactive explorer with a scaling benchmark — Python/Plotly version of this site"]);
+  if(LINKS.repo){L.push(["Map data (nodes.csv)","https://github.com/"+LINKS.repo+"/blob/main/data/nodes.csv","36 locations with coordinates — same seed as the demo map"]);
+    L.push(["Map data (edges.csv)","https://github.com/"+LINKS.repo+"/blob/main/data/edges.csv","65 roads with weights"]);
+    L.push(["Benchmark data (benchmark_allpairs.csv)","https://github.com/"+LINKS.repo+"/blob/main/data/benchmark_allpairs.csv","400 rows: 4 algorithms × 100 random pairs, nodes visited / edges checked / ms / cost"])}
   if(LINKS.report)L.push(["Project report",LINKS.report,"Design, analysis and results"]);
   if(!L.length)return;
   $("linklist").innerHTML=L.map(([t,u,d])=>`<li><a href="${u}" target="_blank" rel="noopener">${t}</a><span>${d}</span></li>`).join("");
