@@ -252,6 +252,12 @@ section.block,#demo{scroll-margin-top:60px}
             <p>The map is rebuilt with wider ranges of road weight, shown as a multiple of straight-line distance.</p>
             <div id="sens"></div>
           </div>
+          <div class="card">
+            <h3>Who visits fewest nodes?</h3>
+            <p>Share of sampled pairs where each algorithm visits the fewest nodes (ties count for every algorithm tied).</p>
+            <div id="winrate"></div>
+            <p class="cap" id="wincap"></p>
+          </div>
         </div>
 
         <p class="group">Map structure — what the map looks like</p>
@@ -583,17 +589,21 @@ function linChart(xs,series,xl,desc){
     o+=`<text x="${X(xs.length-1)+8}" y="${Y(se.vals[xs.length-1])+4}" style="fill:${se.c};font-weight:800">${se.name}</text>`});
   return o+"</svg>"}
 function more(){
-  const keys=Object.keys(ALGOS),names=keys.map(k=>LABEL[k]),acc={},sv=[0,0,0,0,0],hp=[0,0],pk=[0,0],tm=[];let np=0,tot=0;
+  const keys=Object.keys(ALGOS),names=keys.map(k=>LABEL[k]),acc={},sv=[0,0,0,0,0],hp=[0,0],pk=[0,0],tm=[],win=keys.map(()=>0);let np=0,tot=0;
   for(const [a,b] of pairSet()){np++;const r=keys.map(k=>ALGOS[k](a,b)),h=r[3].path.length-1;
     const c=acc[h]||(acc[h]={n:0,v:keys.map(()=>0)});c.n++;r.forEach((x,i)=>c.v[i]+=x.visited);
     const sp=100*(1-r[1].visited/r[0].visited);tot+=sp;sv[sp<=0?0:sp<=20?1:sp<=40?2:sp<=60?3:4]++;
-    hp[0]+=r[0].pushes;hp[1]+=r[1].pushes;pk[0]+=r[0].peak;pk[1]+=r[1].peak}
+    hp[0]+=r[0].pushes;hp[1]+=r[1].pushes;pk[0]+=r[0].peak;pk[1]+=r[1].peak;
+    const mv=Math.min(...r.map(x=>x.visited));r.forEach((x,i)=>{if(x.visited===mv)win[i]++})}
   const hs=Object.keys(acc).map(Number).filter(h=>acc[h].n>=3).sort((a,b)=>a-b);
   $("hops").innerHTML=linChart(hs,keys.map((k,i)=>({name:LABEL[k].replace(" (fewest hops)",""),c:COLORS[k],vals:hs.map(h=>acc[h].v[i]/acc[h].n)})),"hops between start and destination","Line chart of average nodes visited against hop distance");
   $("savcap").textContent=`On average A* visits ${(tot/np).toFixed(0)}% fewer nodes than Dijkstra. Number of searches by how many fewer nodes A* visited:`;
   $("sav").innerHTML=histChart(sv,["none","1–20%","21–40%","41–60%","over 60%"],"fewer nodes visited than Dijkstra");
   $("hpush").innerHTML=barChart(["Dijkstra","A* search"],hp.map(v=>v/np),v=>v.toFixed(1));
   $("hpeak").innerHTML=barChart(["Dijkstra","A* search"],pk.map(v=>v/np),v=>v.toFixed(1));
+  $("winrate").innerHTML=barChart(names,win.map(w=>100*w/np),v=>v.toFixed(1)+"%");
+  const wi=win.indexOf(Math.max(...win));
+  $("wincap").textContent=`${names[wi]} visits the fewest nodes most often — ${(100*win[wi]/np).toFixed(0)}% of sampled pairs (ties shared).`;
   keys.forEach((k,i)=>{const t0=performance.now();for(const [a,b] of pairSet())ALGOS[k](a,b);tm[i]=(performance.now()-t0)*1000/np});
   $("tm").innerHTML=barChart(names,tm,v=>v.toFixed(1)+" µs")}
 function shade(t){const c0=[236,246,246],c1=[14,124,134];return`rgb(${c0.map((x,i)=>Math.round(x+(c1[i]-x)*t)).join(",")})`}
