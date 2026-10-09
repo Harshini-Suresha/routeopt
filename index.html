@@ -274,6 +274,12 @@ section.block,#demo{scroll-margin-top:60px}
             <div class="pair"><div><p class="cap">Roads per location</p><div id="deg"></div></div><div><p class="cap">Road weight</p><div id="wt"></div></div></div>
           </div>
           <div class="card">
+            <h3>Most connected places</h3>
+            <p>Locations with the most roads meeting there — the map's natural hubs.</p>
+            <div id="hubs"></div>
+            <p class="cap" id="hubcap"></p>
+          </div>
+          <div class="card">
             <h3>Hop distances</h3>
             <p>How many hops apart are pairs of places? Fewest-hop paths (BFS) across the sampled pairs.</p>
             <div id="hopdist"></div>
@@ -562,6 +568,9 @@ function analytics(){
   const wl=Math.min(...ws),wh=Math.max(...ws),nb=6,st=(wh-wl)/nb,wc=Array(nb).fill(0);
   ws.forEach(w=>wc[Math.min(nb-1,Math.floor((w-wl)/st))]++);
   $("wt").innerHTML=histChart(wc,wc.map((_,i)=>(wl+i*st).toFixed(1)+"–"+(wl+(i+1)*st).toFixed(1)),"road weight");
+  const top6=deg.map((d,i)=>[d,i]).sort((x,y)=>y[0]-x[0]||x[1]-y[1]).slice(0,6);
+  $("hubs").innerHTML=barChart(top6.map(t=>NAMES[t[1]]),top6.map(t=>t[0]),v=>v,true);
+  $("hubcap").textContent=`Best connected: ${NAMES[top6[0][1]]} with ${top6[0][0]} roads.`;
   /* growth curves */
   const r=E/N,xs=[100,400,1600,3600,6400],f=fn=>xs.map(v=>fn(v,r*v));
   $("theorycap").textContent=`Operation counts for a map with ${r.toFixed(1)} roads per location like this one. Both axes are logarithmic, so a steeper line grows faster.`;
