@@ -346,6 +346,12 @@ section.block,#demo{scroll-margin-top:60px}
             <p class="cap">Cheapest route cost over all sampled pairs</p><div id="costh"></div>
             <p class="cap">Route cost divided by straight-line distance. 1.0 would be a straight road.</p><div id="detour"></div>
           </div>
+          <div class="card">
+            <h3>Longest cheapest routes</h3>
+            <p>Top 5 costliest cheapest-routes across the sampled pairs.</p>
+            <div class="scroll" id="longroute"></div>
+            <p class="cap" id="longcap"></p>
+          </div>
           <div class="card wide">
             <h3>Which locations sit in the middle</h3>
             <p>A location is counted each time it lies between the start and end of a cheapest route. Darker means more routes pass through it.</p>
@@ -652,10 +658,11 @@ function iso(){
   $("isocap").textContent=`Farthest from ${NAMES[s]}: ${NAMES[far]} at cost ${mx.toFixed(1)}. Average cost to the other locations: ${(others.reduce((a,b)=>a+b,0)/others.length).toFixed(1)}.`}
 function extra(){
   $("isosrc").innerHTML=NAMES.map((n,i)=>`<option value="${i}">${n}</option>`).join("");$("isosrc").onchange=iso;iso();
-  const use={},costs=[],ratios=[];
+  const use={},costs=[],ratios=[],ex=[];
   for(const [a,b] of pairSet()){const r=ALGOS.dijkstra(a,b);
     for(let i=1;i<r.path.length;i++){const u=r.path[i-1],v=r.path[i],k=Math.min(u,v)+"-"+Math.max(u,v);use[k]=(use[k]||0)+1}
-    costs.push(r.cost);ratios.push(r.cost/mapDist(a,b))}
+    costs.push(r.cost);ratios.push(r.cost/mapDist(a,b));
+    ex.push({a,b,cost:r.cost,hops:r.path.length-1,det:r.cost/mapDist(a,b)})}
   const mx=Math.max(...Object.values(use)),top=Object.entries(use).sort((x,y)=>y[1]-x[1])[0];
   $("usage").innerHTML=edgeKeys.map(([a,b])=>{const c=use[Math.min(a,b)+"-"+Math.max(a,b)]||0,t=c/mx;
     return`<line x1="${P[a].x}" y1="${P[a].y}" x2="${P[b].x}" y2="${P[b].y}" stroke="${c?shade(.35+.65*t):"#E4C9C6"}" stroke-width="${c?2+11*t:1.5}" stroke-linecap="round"><title>${NAMES[a]} to ${NAMES[b]}: ${c} routes</title></line>`}).join("")+
@@ -665,7 +672,11 @@ function extra(){
   const bin=(vals,nb,lbl)=>{const lo=Math.min(...vals),hi=Math.max(...vals),st=(hi-lo)/nb,c=Array(nb).fill(0);
     vals.forEach(v=>c[Math.min(nb-1,Math.floor((v-lo)/st))]++);return histChart(c,c.map((_,i)=>lbl(lo+i*st)+"–"+lbl(lo+(i+1)*st)),"")};
   $("costh").innerHTML=bin(costs,7,v=>v.toFixed(1));
-  $("detour").innerHTML=bin(ratios,6,v=>v.toFixed(1))}
+  $("detour").innerHTML=bin(ratios,6,v=>v.toFixed(1));
+  const byCost=[...ex].sort((x,y)=>y.cost-x.cost).slice(0,5);
+  $("longroute").innerHTML=`<table><thead><tr><th>Route</th><th>Cost</th><th>Hops</th></tr></thead><tbody>${byCost.map(e=>`<tr><td>${NAMES[e.a]} → ${NAMES[e.b]}</td><td>${e.cost.toFixed(1)}</td><td>${e.hops}</td></tr>`).join("")}</tbody></table>`;
+  const byDet=[...ex].sort((x,y)=>y.det-x.det)[0];
+  $("longcap").textContent=`Longest: ${NAMES[byCost[0].a]} to ${NAMES[byCost[0].b]} at ${byCost[0].cost.toFixed(1)}. Biggest detour: ${NAMES[byDet.a]} to ${NAMES[byDet.b]} at ${byDet.det.toFixed(1)}× straight distance.`}
 function binChart(vals,nb,lbl,xl){const lo=Math.min(...vals),hi=Math.max(...vals),st=(hi-lo)/nb||1,c=Array(nb).fill(0);
   vals.forEach(v=>c[Math.min(nb-1,Math.floor((v-lo)/st))]++);return histChart(c,c.map((_,i)=>lbl(lo+i*st)+"–"+lbl(lo+(i+1)*st)),xl)}
 function scatterChart(pts,xl,yl,desc){
