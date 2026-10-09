@@ -2,7 +2,7 @@
 
 Graph-based navigation project: Dijkstra, A*, Bellman–Ford and BFS on the same
 weighted map, plus Trie autocomplete, BFS/DFS traversal, topological sort, and
-a benchmarking framework. PES University, Data Structures & Algorithms.
+a benchmarking framework.
 
 ## Live links
 

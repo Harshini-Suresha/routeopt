@@ -7,8 +7,9 @@ import routeopt as ro
 
 st.set_page_config(page_title="RouteOpt", page_icon="🧭", layout="wide")
 st.title("RouteOpt")
-st.caption("Graph-based route optimization: Dijkstra, A*, Bellman-Ford and BFS on a weighted map. "
-           "PES University, Data Structures & Algorithms.")
+st.caption("Graph-based route optimization: Dijkstra, A*, Bellman-Ford and BFS on a weighted map.")
+st.markdown("🌐 **Main website:** https://harshini-suresha.github.io/routeopt/ — "
+            "interactive demo, benchmarks and downloadable datasets.")
 
 # ------------------------------------------------------------------ sidebar
 sb = st.sidebar
