@@ -666,7 +666,8 @@ function extra(){
   const mx=Math.max(...Object.values(use)),top=Object.entries(use).sort((x,y)=>y[1]-x[1])[0];
   $("usage").innerHTML=edgeKeys.map(([a,b])=>{const c=use[Math.min(a,b)+"-"+Math.max(a,b)]||0,t=c/mx;
     return`<line x1="${P[a].x}" y1="${P[a].y}" x2="${P[b].x}" y2="${P[b].y}" stroke="${c?shade(.35+.65*t):"#E4C9C6"}" stroke-width="${c?2+11*t:1.5}" stroke-linecap="round"><title>${NAMES[a]} to ${NAMES[b]}: ${c} routes</title></line>`}).join("")+
-    P.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="#fff" stroke="#14232D" stroke-width="1.5"/>`).join("");
+    P.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="4" fill="#fff" stroke="#14232D" stroke-width="1.5"/>`).join("")+
+    [...new Set(Object.entries(use).sort((x,y)=>y[1]-x[1]).slice(0,3).flatMap(([k])=>k.split("-").map(Number)))].map(i=>`<text class="lbl" x="${P[i].x}" y="${P[i].y-12}" text-anchor="middle">${NAMES[i]}</text>`).join("");
   const [ua,ub]=top[0].split("-").map(Number);
   $("usagecap").textContent=`Busiest road: ${NAMES[ua]} to ${NAMES[ub]}, used by ${top[1]} of ${costs.length} cheapest routes. ${edgeKeys.length-Object.keys(use).length} roads are on no cheapest route.`;
   const bin=(vals,nb,lbl)=>{const lo=Math.min(...vals),hi=Math.max(...vals),st=(hi-lo)/nb,c=Array(nb).fill(0);
