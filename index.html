@@ -88,6 +88,31 @@ main{padding-bottom:72px}
 .links:empty{display:none}
 .contact{margin:0;padding:14px 0;border-top:1px solid var(--rule)}
 .contact a{font:800 1.15rem var(--display)}
+
+/* nav */
+.topnav{position:sticky;top:0;z-index:10;background:var(--paper);border-bottom:1px solid var(--rule);margin:0 -24px;padding:0 24px}
+.topnav .navrow{display:flex;gap:2px;overflow-x:auto}
+.topnav a{font:500 .9rem/1 var(--display);color:var(--soft);text-decoration:none;padding:13px 10px;white-space:nowrap}
+.topnav a:hover{color:var(--ink)}
+section.block,#demo{scroll-margin-top:60px}
+
+/* hero buttons */
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 26px}
+.btn{display:inline-block;font:500 1rem var(--display);background:var(--ink);color:#fff;text-decoration:none;padding:10px 18px;border-radius:6px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--edge)}
+
+/* cards */
+.group{font:800 .85rem/1.4 var(--display);text-transform:uppercase;letter-spacing:.09em;color:var(--route);margin:44px 0 4px}
+.group:first-child{margin-top:8px}
+.groupsub{color:var(--soft);margin:0 0 14px;max-width:44em}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(310px,1fr));gap:16px;margin-top:12px}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:16px;min-width:0}
+.card.wide{grid-column:1/-1}
+.card h3{margin:0 0 4px;font-size:1.15rem}
+.card p{font-size:1rem;margin:0 0 10px;max-width:none}
+.card .cap{margin:12px 0 2px}
+.card .chart{max-width:none}
+.card dl.stats{margin-top:8px}
 @media (max-width:760px){section.block{grid-template-columns:1fr;padding-top:48px}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
@@ -95,10 +120,14 @@ main{padding-bottom:72px}
 <body>
 <div class="wrap">
   <header class="top"><span class="mark">RouteOpt</span></header>
+  <nav class="topnav" aria-label="Sections"><div class="navrow">
+    <a href="#demo">Demo</a><a href="#about">About</a><a href="#algorithms">Algorithms</a><a href="#benchmarks">Benchmarks</a><a href="#data">Data</a><a href="#links">Links</a>
+  </div></nav>
 
   <main>
     <h1>Find the shortest route, and see what it cost to find it.</h1>
     <p class="lede">RouteOpt is a graph-based navigation system that runs Dijkstra, A*, Bellman–Ford and BFS on the same weighted map. Pick two places and watch each algorithm search.</p>
+    <p class="cta"><a class="btn" href="#demo">Try the demo</a><a class="btn ghost" href="#benchmarks">See benchmarks</a><a class="btn ghost" href="#data">Get the data</a></p>
 
     <div class="demo" id="demo">
       <div class="bar">
@@ -146,16 +175,12 @@ main{padding-bottom:72px}
 
     <section class="block" id="about">
       <h2>What RouteOpt does</h2>
-      <dl class="what">
-        <dt>Route computation</dt>
-        <dd>Locations are vertices and routes are weighted edges. The system computes shortest paths and discovers routes across large map data.</dd>
-        <dt>Graph traversal</dt>
-        <dd>BFS and DFS handle connectivity checks, cycle detection and reachability queries. Topological sorting orders dependency-aware directed graphs.</dd>
-        <dt>Location search</dt>
-        <dd>A Trie powers prefix autocomplete, and a hash table gives constant-time lookup of a location and its metadata. Both are running in the search box above.</dd>
-        <dt>Benchmarking</dt>
-        <dd>A benchmarking framework compares traversal and shortest-path strategies as graphs grow, measuring runtime, memory use and scalability.</dd>
-      </dl>
+      <div class="cards">
+        <div class="card"><h3>Route computation</h3><p>Locations are vertices and routes are weighted edges. The system computes shortest paths and discovers routes across large map data.</p></div>
+        <div class="card"><h3>Graph traversal</h3><p>BFS and DFS handle connectivity checks, cycle detection and reachability queries. Topological sorting orders dependency-aware directed graphs.</p></div>
+        <div class="card"><h3>Location search</h3><p>A Trie powers prefix autocomplete, and a hash table gives constant-time lookup of a location and its metadata. Both are running in the search box above.</p></div>
+        <div class="card"><h3>Benchmarking</h3><p>A benchmarking framework compares traversal and shortest-path strategies as graphs grow, measuring runtime, memory use and scalability.</p></div>
+      </div>
     </section>
 
     <section class="block" id="algorithms">
@@ -179,70 +204,141 @@ main{padding-bottom:72px}
     <section class="block" id="benchmarks">
       <h2>Data and benchmarks</h2>
       <div>
-        <h3>Average search effort on the demo map</h3>
-        <p>Mean over <span id="pairs">630</span> pairs of <span id="nloc">36</span> locations (all pairs, or a fixed sample on bigger maps), computed in your browser when the page loads.</p>
-        <div id="avg"></div>
-        <h3>Route quality</h3>
-        <p>How much more the average route costs than the cheapest one, over the sampled pairs. BFS minimises hops, not cost.</p>
-        <div id="gap"></div>
-        <h3>The map in numbers</h3>
-        <dl class="stats">
-          <div><dt>Locations</dt><dd id="g-n">–</dd></div>
-          <div><dt>Roads</dt><dd id="g-e">–</dd></div>
-          <div><dt>Roads per location</dt><dd id="g-d">–</dd></div>
-          <div><dt>Most hops between two places</dt><dd id="g-h">–</dd></div>
-        </dl>
-        <div class="pair"><div><p class="cap">Roads per location</p><div id="deg"></div></div><div><p class="cap">Road weight</p><div id="wt"></div></div></div>
-        <h3>Which locations get searched most</h3>
-        <p>Many pairs of locations are searched (every pair on the 6 × 6 map, a fixed sample on bigger maps), and each location visited along the way is counted.</p>
-        <label class="cap">Algorithm <select id="hmalgo"><option value="dijkstra">Dijkstra</option><option value="astar">A* search</option><option value="bf">Bellman–Ford</option><option value="bfs">BFS (fewest hops)</option></select></label>
-        <svg id="heat" class="chart" viewBox="0 0 800 520" role="img" aria-label="Map shaded by how often each location is visited" style="background:#fff;border:1px solid var(--rule);border-radius:6px;margin-top:8px"></svg>
-        <p class="cap" id="hmtop"></p>
-        <h3>How the cost grows</h3>
-        <p id="theorycap"></p>
-        <div id="theory"></div>
-        <h3>Effort by distance</h3>
-        <p>Average nodes visited, grouped by how many hops apart the start and destination are.</p>
-        <div id="hops"></div>
-        <h3>A* versus Dijkstra</h3>
-        <p id="savcap"></p>
-        <div id="sav"></div>
-        <h3>Priority queue activity</h3>
-        <p>Dijkstra and A* both use a binary heap. Pushes count how many entries were added, and the peak is the largest the heap ever got.</p>
-        <p class="cap">Average heap pushes per search</p><div id="hpush"></div>
-        <p class="cap">Average peak heap size</p><div id="hpeak"></div>
-        <h3>Time per search</h3>
-        <p>Average time per search over the sampled pairs, measured in your browser. Timings vary between devices.</p>
-        <div id="tm"></div>
-        <h3>How far is everything from one place</h3>
-        <p>Cheapest route cost from the chosen location to every other location. Darker means farther.</p>
-        <label class="cap">Start <select id="isosrc"></select></label>
-        <svg id="iso" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map shaded by cheapest route cost from the chosen start"></svg>
-        <p class="cap" id="isocap"></p>
-        <h3>Which roads carry the most routes</h3>
-        <p>The cheapest route for every sampled pair is traced, and each road on it is counted. Thicker means more routes.</p>
-        <svg id="usage" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map with road thickness showing how many cheapest routes use each road"></svg>
-        <p class="cap" id="usagecap"></p>
-        <h3>Route costs</h3>
-        <p class="cap">Cheapest route cost over all sampled pairs</p><div id="costh"></div>
-        <p class="cap">Route cost divided by straight-line distance. 1.0 would be a straight road.</p><div id="detour"></div>
-        <h3>Which locations sit in the middle</h3>
-        <p>A location is counted each time it lies between the start and end of a cheapest route. Darker means more routes pass through it.</p>
-        <svg id="between" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map shaded by how many cheapest routes pass through each location"></svg>
-        <p class="cap">Locations most often passed through</p><div id="betbar"></div>
-        <h3>Bellman–Ford passes</h3>
-        <p>Bellman–Ford repeats a pass over every road until nothing improves. Number of searches by passes needed:</p>
-        <div id="passes"></div>
-        <h3>What if road weights vary more?</h3>
-        <p>The map is rebuilt with wider ranges of road weight, shown as a multiple of straight-line distance. The chart shows how much extra BFS routes cost and how many fewer nodes A* visits than Dijkstra.</p>
-        <div id="sens"></div>
-        <h3>How the algorithms scale</h3>
-        <p>Builds grid graphs from 100 to 6,400 nodes and times each algorithm corner to corner. Timings depend on your device.</p>
-        <button class="go" id="bench">Run scaling benchmark</button><span class="status" id="bstat" aria-live="polite"></span>
-        <div id="charts"></div>
-        <h3>Measured scaling (Python)</h3>
-        <p>Corner-to-corner searches on k × k grids, median of 3 runs with <code>routeopt.py</code> — the same code the Streamlit app and notebook use. Raw numbers: <a href="data/scaling_benchmark.csv" download>scaling_benchmark.csv</a>.</p>
-        <div id="pybench"></div>
+        <p class="group">Search effort — how hard each algorithm works</p>
+        <p class="groupsub">Same map, same pairs, four algorithms. Lower is better everywhere except route quality, where matching the cheapest route is the goal.</p>
+        <div class="cards">
+          <div class="card">
+            <h3>Average search effort</h3>
+            <p>Mean over <span id="pairs">630</span> pairs of <span id="nloc">36</span> locations (all pairs, or a fixed sample on bigger maps), computed in your browser when the page loads.</p>
+            <div id="avg"></div>
+          </div>
+          <div class="card">
+            <h3>Route quality</h3>
+            <p>How much more the average route costs than the cheapest one, over the sampled pairs. BFS minimises hops, not cost.</p>
+            <div id="gap"></div>
+          </div>
+          <div class="card">
+            <h3>Effort by distance</h3>
+            <p>Average nodes visited, grouped by how many hops apart the start and destination are.</p>
+            <div id="hops"></div>
+          </div>
+          <div class="card">
+            <h3>A* versus Dijkstra</h3>
+            <p id="savcap"></p>
+            <div id="sav"></div>
+          </div>
+          <div class="card">
+            <h3>Priority queue activity</h3>
+            <p>Dijkstra and A* both use a binary heap. Pushes count how many entries were added, and the peak is the largest the heap ever got.</p>
+            <p class="cap">Average heap pushes per search</p><div id="hpush"></div>
+            <p class="cap">Average peak heap size</p><div id="hpeak"></div>
+          </div>
+          <div class="card">
+            <h3>Time per search</h3>
+            <p>Average time per search over the sampled pairs, measured in your browser. Timings vary between devices.</p>
+            <div id="tm"></div>
+          </div>
+          <div class="card">
+            <h3>Bellman–Ford passes</h3>
+            <p>Bellman–Ford repeats a pass over every road until nothing improves. Number of searches by passes needed:</p>
+            <div id="passes"></div>
+          </div>
+          <div class="card">
+            <h3>What if road weights vary more?</h3>
+            <p>The map is rebuilt with wider ranges of road weight, shown as a multiple of straight-line distance.</p>
+            <div id="sens"></div>
+          </div>
+        </div>
+
+        <p class="group">Map structure — what the map looks like</p>
+        <p class="groupsub">The terrain everything above runs on: sizes, shapes and distances.</p>
+        <div class="cards">
+          <div class="card">
+            <h3>The map in numbers</h3>
+            <dl class="stats">
+              <div><dt>Locations</dt><dd id="g-n">–</dd></div>
+              <div><dt>Roads</dt><dd id="g-e">–</dd></div>
+              <div><dt>Roads per location</dt><dd id="g-d">–</dd></div>
+              <div><dt>Most hops between two places</dt><dd id="g-h">–</dd></div>
+            </dl>
+            <div class="pair"><div><p class="cap">Roads per location</p><div id="deg"></div></div><div><p class="cap">Road weight</p><div id="wt"></div></div></div>
+          </div>
+          <div class="card">
+            <h3>Hop distances</h3>
+            <p>How many hops apart are pairs of places? Fewest-hop paths (BFS) across the sampled pairs.</p>
+            <div id="hopdist"></div>
+            <p class="cap" id="hopcap"></p>
+          </div>
+          <div class="card wide">
+            <h3>Which locations get searched most</h3>
+            <p>Many pairs of locations are searched (every pair on the 6 × 6 map, a fixed sample on bigger maps), and each location visited along the way is counted.</p>
+            <label class="cap">Algorithm <select id="hmalgo"><option value="dijkstra">Dijkstra</option><option value="astar">A* search</option><option value="bf">Bellman–Ford</option><option value="bfs">BFS (fewest hops)</option></select></label>
+            <svg id="heat" class="chart" viewBox="0 0 800 520" role="img" aria-label="Map shaded by how often each location is visited" style="background:#fff;border:1px solid var(--rule);border-radius:6px;margin-top:8px"></svg>
+            <p class="cap" id="hmtop"></p>
+          </div>
+          <div class="card wide">
+            <h3>Cost matrix</h3>
+            <p>Cheapest route cost between every pair of locations — darker means farther. Hover any cell for the pair.</p>
+            <svg id="costmat" class="chart mapsvg" viewBox="0 0 520 520" role="img" aria-label="Heatmap of cheapest route costs between locations"></svg>
+            <p class="cap" id="matcap"></p>
+          </div>
+          <div class="card">
+            <h3>How the cost grows</h3>
+            <p id="theorycap"></p>
+            <div id="theory"></div>
+          </div>
+        </div>
+
+        <p class="group">Routes — where the traffic goes</p>
+        <p class="groupsub">Tracing every cheapest route to see which places and roads matter most.</p>
+        <div class="cards">
+          <div class="card wide">
+            <h3>How far is everything from one place</h3>
+            <p>Cheapest route cost from the chosen location to every other location. Darker means farther.</p>
+            <label class="cap">Start <select id="isosrc"></select></label>
+            <svg id="iso" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map shaded by cheapest route cost from the chosen start"></svg>
+            <p class="cap" id="isocap"></p>
+          </div>
+          <div class="card wide">
+            <h3>Which roads carry the most routes</h3>
+            <p>The cheapest route for every sampled pair is traced, and each road on it is counted. Thicker means more routes.</p>
+            <svg id="usage" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map with road thickness showing how many cheapest routes use each road"></svg>
+            <p class="cap" id="usagecap"></p>
+          </div>
+          <div class="card">
+            <h3>Cheap roads carry more routes</h3>
+            <p>Each dot is one road: its weight against how many cheapest routes use it.</p>
+            <div id="wuse"></div>
+            <p class="cap" id="wusecap"></p>
+          </div>
+          <div class="card">
+            <h3>Route costs</h3>
+            <p class="cap">Cheapest route cost over all sampled pairs</p><div id="costh"></div>
+            <p class="cap">Route cost divided by straight-line distance. 1.0 would be a straight road.</p><div id="detour"></div>
+          </div>
+          <div class="card wide">
+            <h3>Which locations sit in the middle</h3>
+            <p>A location is counted each time it lies between the start and end of a cheapest route. Darker means more routes pass through it.</p>
+            <svg id="between" class="chart mapsvg" viewBox="0 0 800 520" role="img" aria-label="Map shaded by how many cheapest routes pass through each location"></svg>
+            <p class="cap">Locations most often passed through</p><div id="betbar"></div>
+          </div>
+        </div>
+
+        <p class="group">Scaling — how it grows</p>
+        <p class="groupsub">From this map up to thousands of nodes: measure it live, or read the pre-measured Python numbers.</p>
+        <div class="cards">
+          <div class="card wide">
+            <h3>Scale it yourself</h3>
+            <p>Builds grid graphs from 100 to 6,400 nodes and times each algorithm corner to corner. Timings depend on your device.</p>
+            <button class="go" id="bench">Run scaling benchmark</button><span class="status" id="bstat" aria-live="polite"></span>
+            <div id="charts"></div>
+          </div>
+          <div class="card wide">
+            <h3>Measured scaling (Python)</h3>
+            <p>Corner-to-corner searches on k × k grids, median of 3 runs with <code>routeopt.py</code> — the same code the Streamlit app and notebook use. Raw numbers: <a href="data/scaling_benchmark.csv" download>scaling_benchmark.csv</a>.</p>
+            <div id="pybench"></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -520,6 +616,49 @@ function extra(){
   $("detour").innerHTML=bin(ratios,6,v=>v.toFixed(1))}
 function binChart(vals,nb,lbl,xl){const lo=Math.min(...vals),hi=Math.max(...vals),st=(hi-lo)/nb||1,c=Array(nb).fill(0);
   vals.forEach(v=>c[Math.min(nb-1,Math.floor((v-lo)/st))]++);return histChart(c,c.map((_,i)=>lbl(lo+i*st)+"–"+lbl(lo+(i+1)*st)),xl)}
+function scatterChart(pts,xl,yl,desc){
+  const w=640,h=300,L=48,Rm=16,Tm=12,B=44;
+  const xs=pts.map(p=>p[0]),ys=pts.map(p=>p[1]);
+  const x0=Math.min(...xs),x1=Math.max(...xs),y1=Math.max(...ys,1);
+  const X=v=>L+(w-L-Rm)*(v-x0)/((x1-x0)||1),Y=v=>Tm+(h-Tm-B)*(1-v/y1);
+  let o=`<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="${desc}">`;
+  for(let k=0;k<=4;k++){const v=y1*k/4,y=Y(v);o+=`<line class="ax" x1="${L}" x2="${w-Rm}" y1="${y}" y2="${y}"/><text x="${L-6}" y="${y+4}" text-anchor="end">${Math.round(v)}</text>`}
+  pts.forEach(p=>o+=`<circle cx="${X(p[0]).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="3.5" fill="#0E7C86" opacity="0.55"><title>${p[2]||""}</title></circle>`);
+  o+=`<text x="${(L+w-Rm)/2}" y="${h-6}" text-anchor="middle">${xl}</text>`;
+  return o+"</svg>"}
+function newviz(){
+  const PS=pairSet();
+  /* hop distances across sampled pairs */
+  const hc={};
+  for(const [a,b] of PS){const p=ALGOS.bfs(a,b).path;if(!p.length)continue;
+    const h=p.length-1;hc[h]=(hc[h]||0)+1}
+  const hs=Object.keys(hc).map(Number).sort((x,y)=>x-y);
+  $("hopdist").innerHTML=histChart(hs.map(h=>hc[h]),hs.map(String),"hops between two places");
+  const htop=hs.reduce((x,y)=>hc[y]>hc[x]?y:x,hs[0]);
+  $("hopcap").textContent=`Most pairs are ${htop} hops apart (${hc[htop]} of ${PS.length} sampled pairs).`;
+  /* cost matrix: cheapest cost between locations */
+  const idx=N<=64?Array.from({length:N},(_,i)=>i):Array.from({length:50},(_,i)=>Math.round(i*(N-1)/49));
+  const C=idx.map(a=>idx.map(c=>a===c?0:ALGOS.dijkstra(a,c).cost));
+  const flat=C.flat(),mx=Math.max(...flat);
+  const S=520,cell=S/idx.length;
+  let o="";
+  idx.forEach((a,i)=>idx.forEach((b,j)=>{
+    o+=`<rect x="${(i*cell).toFixed(1)}" y="${(j*cell).toFixed(1)}" width="${(cell+0.5).toFixed(1)}" height="${(cell+0.5).toFixed(1)}" fill="${shade(C[i][j]/mx)}"><title>${NAMES[a]} to ${NAMES[b]}: cost ${Math.round(C[i][j])}</title></rect>`}));
+  $("costmat").innerHTML=o;
+  let fi=0,fj=1;flat.forEach((v,k)=>{if(v>flat[fi*idx.length+fj]){fi=Math.floor(k/idx.length);fj=k%idx.length}});
+  $("matcap").textContent=`Average cheapest cost ${Math.round(flat.reduce((x,y)=>x+y,0)/flat.length)}. Farthest pair: ${NAMES[idx[fi]]} to ${NAMES[idx[fj]]} at cost ${Math.round(flat[fi*idx.length+fj])}.`;
+  /* road weight vs routes using it */
+  const use={};
+  for(const [a,b] of PS){const r=ALGOS.dijkstra(a,b);
+    for(let i=1;i<r.path.length;i++){const u=r.path[i-1],v=r.path[i],k=Math.min(u,v)+"-"+Math.max(u,v);use[k]=(use[k]||0)+1}}
+  const wmap={};adj.forEach((al,u)=>al.forEach(e=>{if(u<e.to)wmap[u+"-"+e.to]=e.w}));
+  const pts=Object.keys(use).map(k=>{const parts=k.split("-").map(Number);
+    return [wmap[k],use[k],`${NAMES[parts[0]]} to ${NAMES[parts[1]]}: ${use[k]} routes, weight ${Math.round(wmap[k])}`]});
+  $("wuse").innerHTML=scatterChart(pts,"road weight","cheapest routes using it","Scatter plot of road weight against number of cheapest routes using each road");
+  const n=pts.length,mx0=pts.reduce((x,p)=>x+p[0],0)/n,my0=pts.reduce((x,p)=>x+p[1],0)/n;
+  let cov=0,sx=0,sy=0;pts.forEach(p=>{cov+=(p[0]-mx0)*(p[1]-my0);sx+=(p[0]-mx0)**2;sy+=(p[1]-my0)**2});
+  const r=sx&&sy?cov/Math.sqrt(sx*sy):0;
+  $("wusecap").textContent=`Correlation ${r.toFixed(2)}: ${r<-0.3?"lighter roads carry clearly more routes":r<0?"lighter roads carry slightly more routes":"no clear link between weight and usage"}.`}
 function extra2(){
   const mid=Array(N).fill(0),passes=[];
   for(const [a,b] of pairSet()){const r=ALGOS.dijkstra(a,b);for(let i=1;i<r.path.length-1;i++)mid[r.path[i]]++;passes.push(ALGOS.bf(a,b).passes)}
@@ -583,7 +722,7 @@ $("hmalgo").onchange=heat;
 $("bench").onclick=()=>{$("bench").disabled=true;$("bstat").textContent="Running, the page may pause for a moment…";setTimeout(bench,40)};
 $("mapsize").value=String(MSZ);
 $("mapsize").onchange=e=>{const u=new URL(location.href);u.searchParams.set("size",e.target.value);location.href=u};
-paintEnds();run();avgEffort();analytics();more();extra();extra2();pybench();links();
+paintEnds();run();avgEffort();analytics();more();extra();extra2();pybench();newviz();links();
 })();
 </script>
 </body>
