@@ -384,12 +384,16 @@ const NAMES=["Harbour Gate","Mill Lane","Old Market","Canal Street","Station Squ
 /* seeded random so the map is the same on every visit */
 function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let N,P,adj,edgeKeys;
+/* map units: display positions are pixels, but road weights use map units (px / U)
+   so costs match routeopt.py and the CSVs instead of being ~100x too big */
+const U=100;
+function mapDist(a,b){return Math.hypot(P[a].x-P[b].x,P[a].y-P[b].y)/U}
 function build(cols,rows,seed,spread=0.6){
   const R=rng(seed);N=cols*rows;P=[];adj=Array.from({length:N},()=>[]);edgeKeys=[];
   const sx=(W-140)/(cols-1),sy=(H-110)/(rows-1);
   for(let i=0;i<N;i++){const r=Math.floor(i/cols),c=i%cols;
     P.push({x:70+c*sx+(R()-.5)*.38*sx,y:55+r*sy+(R()-.5)*.49*sy})}
-  function link(a,b){const d=Math.hypot(P[a].x-P[b].x,P[a].y-P[b].y),w=d*(0.8+R()*spread);
+  function link(a,b){const d=mapDist(a,b),w=d*(0.8+R()*spread);
     adj[a].push({to:b,w});adj[b].push({to:a,w});edgeKeys.push([a,b])}
   for(let i=0;i<N;i++){const r=Math.floor(i/cols),c=i%cols;
     if(c<cols-1&&(r===0||R()>.25))link(i,i+1);
@@ -434,7 +438,7 @@ function finish(trace,edges,prev,s,t){
   return{trace,edges,path:ok?path:[],cost,visited:trace.length}}
 function best(s,t,useH){
   const dist=Array(N).fill(Infinity),prev=Array(N).fill(-1),done=new Set(),trace=[],q=new Heap();let edges=0;
-  const h=n=>useH?0.8*Math.hypot(P[n].x-P[t].x,P[n].y-P[t].y):0;
+  const h=n=>useH?0.8*mapDist(n,t):0;
   dist[s]=0;q.push(h(s),s);
   while(q.size){const u=q.pop()[1];if(done.has(u))continue;done.add(u);trace.push(u);if(u===t)break;
     for(const{to,w}of adj[u]){edges++;const nd=dist[u]+w;if(nd<dist[to]){dist[to]=nd;prev[to]=u;q.push(nd+h(to),to)}}}
@@ -491,7 +495,7 @@ function run(){
       if(k){const a=res.path[k-1],b=res.path[k];$("e"+Math.min(a,b)+"-"+Math.max(a,b)).classList.add("p")}}
     paintEnds();
     $("s-v").textContent=res.visited;$("s-e").textContent=res.edges;
-    $("s-c").textContent=res.path.length?Math.round(res.cost):"No route";$("s-h").textContent=res.path.length?res.path.length:"–"}
+    $("s-c").textContent=res.path.length?res.cost.toFixed(1):"No route";$("s-h").textContent=res.path.length?res.path.length:"–"}
   if(reduce){done();return}
   (function step(){
     if(i<res.trace.length){node(res.trace[i++]).classList.add("v");timer=setTimeout(step,70)}
@@ -500,7 +504,7 @@ function run(){
 function compare(){
   if(S==null||T==null)return;
   const keys=Object.keys(ALGOS),rs=keys.map(k=>ALGOS[k](S,T));
-  const rows=keys.map((k,i)=>`<tr><td>${LABEL[k]}</td><td>${rs[i].visited}</td><td>${rs[i].edges}</td><td>${rs[i].path.length?Math.round(rs[i].cost):"No route"}</td></tr>`).join("");
+  const rows=keys.map((k,i)=>`<tr><td>${LABEL[k]}</td><td>${rs[i].visited}</td><td>${rs[i].edges}</td><td>${rs[i].path.length?rs[i].cost.toFixed(1):"No route"}</td></tr>`).join("");
   $("cmp").innerHTML=`<table><caption class="status" style="text-align:left;caption-side:top;margin-bottom:6px">All four algorithms, same start and destination</caption><thead><tr><th>Algorithm</th><th>Nodes visited</th><th>Edges checked</th><th>Route cost</th></tr></thead><tbody>${rows}</tbody></table><p class="cap">Nodes visited</p>`+barChart(keys.map(k=>LABEL[k]),rs.map(r=>r.visited),v=>v)}
 
 /* charts (plain SVG) */
@@ -550,7 +554,7 @@ function analytics(){
   const ws=[];adj.forEach((a,u)=>a.forEach(e=>{if(u<e.to)ws.push(e.w)}));
   const wl=Math.min(...ws),wh=Math.max(...ws),nb=6,st=(wh-wl)/nb,wc=Array(nb).fill(0);
   ws.forEach(w=>wc[Math.min(nb-1,Math.floor((w-wl)/st))]++);
-  $("wt").innerHTML=histChart(wc,wc.map((_,i)=>Math.round(wl+i*st)+"–"+Math.round(wl+(i+1)*st)),"road weight");
+  $("wt").innerHTML=histChart(wc,wc.map((_,i)=>(wl+i*st).toFixed(1)+"–"+(wl+(i+1)*st).toFixed(1)),"road weight");
   /* growth curves */
   const r=E/N,xs=[100,400,1600,3600,6400],f=fn=>xs.map(v=>fn(v,r*v));
   $("theorycap").textContent=`Operation counts for a map with ${r.toFixed(1)} roads per location like this one. Both axes are logarithmic, so a steeper line grows faster.`;
@@ -598,15 +602,15 @@ function distFrom(s){const d=Array(N).fill(Infinity),q=new Heap(),done=new Set()
 function mapBase(){return edgeKeys.map(([a,b])=>`<line class="e" x1="${P[a].x}" y1="${P[a].y}" x2="${P[b].x}" y2="${P[b].y}"/>`).join("")}
 function iso(){
   const s=+$("isosrc").value||0,d=distFrom(s),mx=Math.max(...d),far=d.indexOf(mx),others=d.filter((_,i)=>i!==s);
-  $("iso").innerHTML=mapBase()+P.map((p,i)=>`<circle cx="${p.x}" cy="${p.y}" r="13" fill="${i===s?"#0E7C86":shade(d[i]/mx)}" stroke="#14232D" stroke-width="2"><title>${NAMES[i]}: cost ${Math.round(d[i])}</title></circle>`).join("")+
+  $("iso").innerHTML=mapBase()+P.map((p,i)=>`<circle cx="${p.x}" cy="${p.y}" r="13" fill="${i===s?"#0E7C86":shade(d[i]/mx)}" stroke="#14232D" stroke-width="2"><title>${NAMES[i]}: cost ${d[i].toFixed(1)}</title></circle>`).join("")+
     [s,far].map(i=>`<text class="lbl" x="${P[i].x}" y="${P[i].y-20}" text-anchor="middle">${NAMES[i]}</text>`).join("");
-  $("isocap").textContent=`Farthest from ${NAMES[s]}: ${NAMES[far]} at cost ${Math.round(mx)}. Average cost to the other locations: ${Math.round(others.reduce((a,b)=>a+b,0)/others.length)}.`}
+  $("isocap").textContent=`Farthest from ${NAMES[s]}: ${NAMES[far]} at cost ${mx.toFixed(1)}. Average cost to the other locations: ${(others.reduce((a,b)=>a+b,0)/others.length).toFixed(1)}.`}
 function extra(){
   $("isosrc").innerHTML=NAMES.map((n,i)=>`<option value="${i}">${n}</option>`).join("");$("isosrc").onchange=iso;iso();
   const use={},costs=[],ratios=[];
   for(const [a,b] of pairSet()){const r=ALGOS.dijkstra(a,b);
     for(let i=1;i<r.path.length;i++){const u=r.path[i-1],v=r.path[i],k=Math.min(u,v)+"-"+Math.max(u,v);use[k]=(use[k]||0)+1}
-    costs.push(r.cost);ratios.push(r.cost/Math.hypot(P[a].x-P[b].x,P[a].y-P[b].y))}
+    costs.push(r.cost);ratios.push(r.cost/mapDist(a,b))}
   const mx=Math.max(...Object.values(use)),top=Object.entries(use).sort((x,y)=>y[1]-x[1])[0];
   $("usage").innerHTML=edgeKeys.map(([a,b])=>{const c=use[Math.min(a,b)+"-"+Math.max(a,b)]||0,t=c/mx;
     return`<line x1="${P[a].x}" y1="${P[a].y}" x2="${P[b].x}" y2="${P[b].y}" stroke="${c?shade(.35+.65*t):"#E4C9C6"}" stroke-width="${c?2+11*t:1.5}" stroke-linecap="round"><title>${NAMES[a]} to ${NAMES[b]}: ${c} routes</title></line>`}).join("")+
@@ -615,7 +619,7 @@ function extra(){
   $("usagecap").textContent=`Busiest road: ${NAMES[ua]} to ${NAMES[ub]}, used by ${top[1]} of ${costs.length} cheapest routes. ${edgeKeys.length-Object.keys(use).length} roads are on no cheapest route.`;
   const bin=(vals,nb,lbl)=>{const lo=Math.min(...vals),hi=Math.max(...vals),st=(hi-lo)/nb,c=Array(nb).fill(0);
     vals.forEach(v=>c[Math.min(nb-1,Math.floor((v-lo)/st))]++);return histChart(c,c.map((_,i)=>lbl(lo+i*st)+"–"+lbl(lo+(i+1)*st)),"")};
-  $("costh").innerHTML=bin(costs,7,v=>Math.round(v));
+  $("costh").innerHTML=bin(costs,7,v=>v.toFixed(1));
   $("detour").innerHTML=bin(ratios,6,v=>v.toFixed(1))}
 function binChart(vals,nb,lbl,xl){const lo=Math.min(...vals),hi=Math.max(...vals),st=(hi-lo)/nb||1,c=Array(nb).fill(0);
   vals.forEach(v=>c[Math.min(nb-1,Math.floor((v-lo)/st))]++);return histChart(c,c.map((_,i)=>lbl(lo+i*st)+"–"+lbl(lo+(i+1)*st)),xl)}
@@ -646,17 +650,17 @@ function newviz(){
   const S=520,cell=S/idx.length;
   let o="";
   idx.forEach((a,i)=>idx.forEach((b,j)=>{
-    o+=`<rect x="${(i*cell).toFixed(1)}" y="${(j*cell).toFixed(1)}" width="${(cell+0.5).toFixed(1)}" height="${(cell+0.5).toFixed(1)}" fill="${shade(C[i][j]/mx)}"><title>${NAMES[a]} to ${NAMES[b]}: cost ${Math.round(C[i][j])}</title></rect>`}));
+    o+=`<rect x="${(i*cell).toFixed(1)}" y="${(j*cell).toFixed(1)}" width="${(cell+0.5).toFixed(1)}" height="${(cell+0.5).toFixed(1)}" fill="${shade(C[i][j]/mx)}"><title>${NAMES[a]} to ${NAMES[b]}: cost ${C[i][j].toFixed(1)}</title></rect>`}));
   $("costmat").innerHTML=o;
   let fi=0,fj=1;flat.forEach((v,k)=>{if(v>flat[fi*idx.length+fj]){fi=Math.floor(k/idx.length);fj=k%idx.length}});
-  $("matcap").textContent=`Average cheapest cost ${Math.round(flat.reduce((x,y)=>x+y,0)/flat.length)}. Farthest pair: ${NAMES[idx[fi]]} to ${NAMES[idx[fj]]} at cost ${Math.round(flat[fi*idx.length+fj])}.`;
+  $("matcap").textContent=`Average cheapest cost ${(flat.reduce((x,y)=>x+y,0)/flat.length).toFixed(1)}. Farthest pair: ${NAMES[idx[fi]]} to ${NAMES[idx[fj]]} at cost ${flat[fi*idx.length+fj].toFixed(1)}.`;
   /* road weight vs routes using it */
   const use={};
   for(const [a,b] of PS){const r=ALGOS.dijkstra(a,b);
     for(let i=1;i<r.path.length;i++){const u=r.path[i-1],v=r.path[i],k=Math.min(u,v)+"-"+Math.max(u,v);use[k]=(use[k]||0)+1}}
   const wmap={};adj.forEach((al,u)=>al.forEach(e=>{if(u<e.to)wmap[u+"-"+e.to]=e.w}));
   const pts=Object.keys(use).map(k=>{const parts=k.split("-").map(Number);
-    return [wmap[k],use[k],`${NAMES[parts[0]]} to ${NAMES[parts[1]]}: ${use[k]} routes, weight ${Math.round(wmap[k])}`]});
+    return [wmap[k],use[k],`${NAMES[parts[0]]} to ${NAMES[parts[1]]}: ${use[k]} routes, weight ${wmap[k].toFixed(2)}`]});
   $("wuse").innerHTML=scatterChart(pts,"road weight","cheapest routes using it","Scatter plot of road weight against number of cheapest routes using each road");
   const n=pts.length,mx0=pts.reduce((x,p)=>x+p[0],0)/n,my0=pts.reduce((x,p)=>x+p[1],0)/n;
   let cov=0,sx=0,sy=0;pts.forEach(p=>{cov+=(p[0]-mx0)*(p[1]-my0);sx+=(p[0]-mx0)**2;sy+=(p[1]-my0)**2});
