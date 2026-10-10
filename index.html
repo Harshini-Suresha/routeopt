@@ -33,6 +33,7 @@ h2{font:800 clamp(1.5rem,3vw,2rem)/1.15 var(--display);letter-spacing:-.02em;mar
 .bar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:12px;justify-content:center}
 .bar label{display:flex;flex-direction:column;font:500 .8rem/1.2 var(--display);color:var(--soft);gap:4px}
 select,input,button{font:500 .95rem var(--display);color:var(--ink);padding:9px 12px;border:1px solid var(--edge);border-radius:6px;background:#fff}
+textarea{width:100%;font:500 .95rem/1.5 var(--display);color:var(--ink);padding:9px 12px;border:1px solid var(--edge);border-radius:6px;background:#fff;margin-top:6px}
 button{cursor:pointer}
 button.go{background:var(--ink);border-color:var(--ink);color:#fff}
 button:disabled{opacity:.45;cursor:not-allowed}
@@ -122,7 +123,7 @@ section.block,#demo{scroll-margin-top:60px}
 <div class="wrap">
   <header class="top"><span class="mark">RouteOpt</span></header>
   <nav class="topnav" aria-label="Sections"><div class="navrow">
-    <a href="#demo">Demo</a><a href="#about">About</a><a href="#algorithms">Algorithms</a><a href="#benchmarks">Benchmarks</a><a href="#data">Data</a><a href="#links">Links</a>
+    <a href="#demo">Demo</a><a href="#about">About</a><a href="#algorithms">Algorithms</a><a href="#benchmarks">Benchmarks</a><a href="#deps">Ordering</a><a href="#data">Data</a><a href="#links">Links</a>
   </div></nav>
 
   <main>
@@ -152,6 +153,7 @@ section.block,#demo{scroll-margin-top:60px}
           <ul id="hits"></ul>
         </label>
         <button id="cmpbtn">Compare all four</button>
+        <button id="share">Copy route link</button>
         <button id="reset">Clear</button>
       </div>
 
@@ -378,6 +380,21 @@ section.block,#demo{scroll-margin-top:60px}
       </div>
     </section>
 
+    <section class="block" id="deps">
+      <h2>Dependency ordering</h2>
+      <div>
+        <p>Topological sort (Kahn's algorithm) orders dependency-aware task graphs and spots cycles — the same routine the Streamlit app and <code>routeopt.topological_sort</code> use. Try adding a line like <code>deploy: fetch</code> to create a cycle.</p>
+        <label class="cap" for="deptext">One task per line, as <code>task: prerequisite, prerequisite</code></label>
+        <textarea id="deptext" rows="6">deploy: test, build
+test: build
+build: fetch, configure
+configure:
+fetch:</textarea>
+        <p><button class="go" id="depbtn">Order tasks</button></p>
+        <p class="status" id="depres" aria-live="polite"></p>
+      </div>
+    </section>
+
     <section class="block" id="data">
       <h2>Data</h2>
       <div>
@@ -495,11 +512,28 @@ const LABEL={dijkstra:"Dijkstra",astar:"A* search",bf:"Bellman–Ford",bfs:"BFS 
 /* rendering */
 const $=id=>document.getElementById(id),svg=$("map"),reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
 let S=0,T=N-1,timer;
+{const qp=new URLSearchParams(location.search);
+ const f=pickParam(qp.get("from")),t=pickParam(qp.get("to"));
+ if(f!=null&&t!=null&&f!==t){S=f;T=t}
+ const ak=(qp.get("algo")||"").toLowerCase();
+ if(ak&&ALGOS[ak])$("algo").value=ak}
+$("share").onclick=()=>{
+  if(S==null||T==null)return;
+  const u=new URL(location.href);
+  u.searchParams.set("size",MSZ);u.searchParams.set("from",S);u.searchParams.set("to",T);u.searchParams.set("algo",$("algo").value);
+  const done=ok=>{$("status").textContent=ok?"Route link copied — share it anywhere.":"Copy blocked. Link: "+u};
+  if(typeof navigator!=="undefined"&&navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(String(u)).then(()=>done(true),()=>done(false));
+  else done(false)};
 svg.innerHTML=
   edgeKeys.map(([a,b])=>`<line class="e" id="e${Math.min(a,b)}-${Math.max(a,b)}" x1="${P[a].x}" y1="${P[a].y}" x2="${P[b].x}" y2="${P[b].y}"/>`).join("")+
   P.map((p,i)=>`<circle class="n" id="n${i}" cx="${p.x}" cy="${p.y}" r="10" tabindex="0" role="button" aria-label="${NAMES[i]}"><title>${NAMES[i]}</title></circle>`).join("")+
   `<g id="labels"></g>`;
 const node=i=>$("n"+i);
+function pickParam(v){if(v==null||v==="")return null;
+  if(/^\d+$/.test(v.trim())){const i=+v;return i>=0&&i<N?i:null}
+  const t=v.trim().toLowerCase();
+  for(let i=0;i<NAMES.length&&i<N;i++)if(NAMES[i].toLowerCase()===t)return i;
+  const ids=trie.find(v.trim());return ids.length?ids[0]:null}
 svg.addEventListener("click",e=>{const m=/^n(\d+)$/.exec(e.target.id||"");if(m)pick(+m[1])});
 svg.addEventListener("keydown",e=>{if(e.key!=="Enter"&&e.key!==" ")return;const m=/^n(\d+)$/.exec(e.target.id||"");if(m){e.preventDefault();pick(+m[1])}});
 
@@ -778,7 +812,23 @@ $("hmalgo").onchange=heat;
 $("bench").onclick=()=>{$("bench").disabled=true;$("bstat").textContent="Running, the page may pause for a moment…";setTimeout(bench,40)};
 $("mapsize").value=String(MSZ);
 $("mapsize").onchange=e=>{const u=new URL(location.href);u.searchParams.set("size",e.target.value);location.href=u};
-paintEnds();run();avgEffort();analytics();more();extra();extra2();pybench();newviz();links();
+function topoSort(deps){
+  const nodes=new Set(Object.keys(deps));Object.values(deps).forEach(ps=>ps.forEach(p=>nodes.add(p)));
+  const waiting={},children={};nodes.forEach(n=>{waiting[n]=new Set(deps[n]||[]);children[n]=[]});
+  nodes.forEach(n=>waiting[n].forEach(p=>children[p].push(n)));
+  const ready=[...nodes].filter(n=>!waiting[n].size).sort(),out=[];
+  while(ready.length){const n=ready.shift();out.push(n);
+    children[n].slice().sort().forEach(c=>{waiting[c].delete(n);if(!waiting[c].size)ready.push(c)})}
+  return out.length===nodes.size?{order:out}:{cycle:[...nodes].filter(n=>!out.includes(n)).sort()}}
+function runDeps(){
+  const deps={};
+  $("deptext").value.split("\n").forEach(line=>{const i=line.indexOf(":");if(i<0)return;
+    const k=line.slice(0,i).trim();if(!k)return;
+    deps[k]=line.slice(i+1).split(",").map(s=>s.trim()).filter(Boolean)});
+  const r=topoSort(deps);
+  $("depres").textContent=r.order?("Order: "+r.order.join(" → ")):("Dependency cycle among: "+r.cycle.join(", "))}
+$("depbtn").onclick=runDeps;
+paintEnds();run();avgEffort();analytics();more();extra();extra2();pybench();newviz();runDeps();links();
 })();
 </script>
 </body>
